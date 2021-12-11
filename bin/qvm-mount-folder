@@ -1,0 +1,102 @@
+#!/usr/bin/python3
+
+import base64
+import errno
+import getpass
+import os
+import subprocess
+import sys
+import tempfile
+
+
+def error(message, exitstatus=4):
+    print("error:", message, file=sys.stderr)
+    sys.exit(exitstatus)
+
+
+def usage(error=""):
+    if error:
+        print("error:", error, file=sys.stderr)
+    print(
+        """usage:
+
+qvm-mount-folder <VM> <folder from VM> <mountpoint>""",
+        file=sys.stderr if error else sys.stdout,
+    )
+    sys.exit(os.EX_USAGE)
+
+
+try:
+    vm, source, target = sys.argv[1:4]
+except IndexError:
+    usage("invalid arguments")
+
+
+if not os.path.isdir(target):
+    error("%s does not exist or is not a directory" % target)
+
+encoded = base64.standard_b64encode(source.encode("utf-8"))
+
+f1_read, f1_write = os.pipe2(0)
+f2_read, f2_write = os.pipe2(0)
+
+stdin_for_read = os.fdopen(f1_read, "rb", buffering=0)
+stdout_for_write = os.fdopen(f2_write, "wb", buffering=0)
+stdin_for_write = os.fdopen(f1_write, "wb", buffering=0)
+stdout_for_read = os.fdopen(f2_read, "rb", buffering=0)
+
+p = subprocess.Popen(
+    ["qrexec-client-vm", vm, "ruddo.ShareFolder"],
+    stdin=stdin_for_read,
+    stdout=stdout_for_write,
+    bufsize=0,
+    close_fds=False,
+)
+
+stdin_for_write.write(encoded + b"\n")
+response = stdout_for_read.read(3).decode("utf-8").rstrip()
+if response == "ok":
+    # proceed
+    pass
+elif response == "":
+    sys.stdout.close()
+    # folder does not exist
+    exit = p.wait()
+    if exit == 2:
+        error("directory %s does not exist in qube %s" % (source, vm), errno.ENOENT)
+    elif exit == 13:
+        error(
+            "qube %s has denied the mount request for directory %s" % (vm, source),
+            error.EACCES,
+        )
+    elif exit == 126:
+        error(
+            "qrexec policy has denied the mount request to %s for directory %s"
+            % (vm, source),
+            126,
+        )
+    else:
+        error("unknown exit status %s" % exit, exit)
+else:
+    p.kill()
+    assert 0, "not reached: %r" % response
+
+uid = os.getuid()
+gid = os.getgid()
+username = getpass.getuser()
+cmdline = [
+    "/usr/bin/sudo",
+    "/usr/bin/mount",
+    "-t",
+    "9p",
+    "-o",
+    "trans=fd,cache=none,rfdno=%s,wfdno=%s,version=9p2000.L,dfltuid=%s,dfltgid=%s,uname=%s,aname=%s"
+    % (0, 1, uid, gid, username, source),
+    "qvm://%s%s" % (vm, source),
+    target,
+]
+
+ret = subprocess.call(
+    cmdline, stdin=stdout_for_read, stdout=stdin_for_write, close_fds=True
+)
+sys.exit(ret)
