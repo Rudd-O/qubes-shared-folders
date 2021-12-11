@@ -53,6 +53,19 @@ to power off one of the two qubes.
 * The connection remains open after unmounting.  This means that the
   client VM can in principle continue to access resources from the
   file system exported by `diod` before the unmount happened.
+* A compromise of the client qube could be used to escalate into a
+  compromise of the `diod` daemon running on the server qube -- in
+  which case the server qube can be considered compromised.  The
+  converse case is possible as well.
+  In other words: the client qube trusts that `diod` (on the server)
+  will not send malicious data back, and the server qube trusts that the
+  `v9fs` kernel module on the client qube will not send malicious data.
+  This is an inherent risk of running a client/server setup that uses
+  a low-level binary protocol and two sides (a client and a server),
+  whether it be Git, SSH, or any other protocol.
+
+If these security considerations cannot be accommodated by your
+security model, you are better off *not using this program*.
 
 ## Installation
 
