@@ -56,7 +56,7 @@ fi
 %attr(0755, root, root) %{_bindir}/qvm-mount-folder
 %attr(0755, root, root) %{_libexecdir}/qvm-share-folder
 %attr(0755, root, root) %{_sysconfdir}/qubes-rpc/ruddo.ShareFolder
-%doc README.md
+%doc README.md TODO.md
 
 %files dom0
 %config(noreplace) %attr(0664, root, qubes) %{_sysconfdir}/qubes-rpc/policy/ruddo.ShareFolder
