@@ -90,7 +90,7 @@ cmdline = [
     "-t",
     "9p",
     "-o",
-    "trans=fd,cache=none,rfdno=%s,wfdno=%s,version=9p2000.L,dfltuid=%s,dfltgid=%s,uname=%s,aname=%s"
+    "trans=fd,rfdno=%s,wfdno=%s,version=9p2000.L,dfltuid=%s,dfltgid=%s,uname=%s,aname=%s"
     % (0, 1, uid, gid, username, source),
     "qvm://%s%s" % (vm, source),
     target,
