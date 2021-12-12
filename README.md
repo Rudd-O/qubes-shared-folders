@@ -116,7 +116,7 @@ security model, you are better off *not using this program*.
 
 *Note: the following instructions show how to build the packages from
 scratch.  If you want to test using prebuilt packages (for Fedora
-34 on the template, and Fedoa 25 / 32 on dom0), they are available
+34 on the template, and Fedora 25 / 32 on dom0), they are available
 [here](https://rudd-o.com/uploads/projects/files/qubes-shared-folders),
 but note they will not be updated in the future, and I cannot guarantee
 their integrity at this time.*
