@@ -49,11 +49,8 @@ to power off one of the two qubes.
 
 * There is currently no way to control *which* folders of the server
   qube can be requested by client qubes.  In principle this should
-  be doable because `diod` can export only a subtree of any file
-  system hierarchy, but the next point needs to be addressed first.
-* The connection remains open after unmounting.  This means that the
-  client VM can in principle continue to access resources from the
-  file system exported by `diod` before the unmount happened.
+  be doable because `diod` is able to export only a subtree of any
+  file system hierarchy.
 * A compromise of the client qube could be used to escalate into a
   compromise of the `diod` daemon running on the server qube -- in
   which case the server qube can be considered compromised.  The

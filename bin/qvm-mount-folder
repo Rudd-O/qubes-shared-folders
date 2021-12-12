@@ -50,8 +50,10 @@ p = subprocess.Popen(
     stdin=stdin_for_read,
     stdout=stdout_for_write,
     bufsize=0,
-    close_fds=False,
+    close_fds=True,
 )
+stdin_for_read.close()
+stdout_for_write.close()
 
 stdin_for_write.write(encoded + b"\n")
 response = stdout_for_read.read(3).decode("utf-8").rstrip()
@@ -96,7 +98,10 @@ cmdline = [
     target,
 ]
 
-ret = subprocess.call(
+p2 = subprocess.Popen(
     cmdline, stdin=stdout_for_read, stdout=stdin_for_write, close_fds=True
 )
-sys.exit(ret)
+stdout_for_read.close()
+stdin_for_write.close()
+
+sys.exit(p2.wait())

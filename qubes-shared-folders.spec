@@ -3,7 +3,7 @@
 %define mybuildnumber %{?build_number}%{?!build_number:1}
 
 Name:           qubes-shared-folders
-Version:        0.0.2
+Version:        0.0.3
 Release:        %{mybuildnumber}%{?dist}
 Summary:        Inter-VM folder sharing via Plan 9 filesystem
 BuildArch:      noarch
