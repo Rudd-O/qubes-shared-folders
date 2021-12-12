@@ -81,8 +81,16 @@ folder to resolve the issue.
   requires neither other equipment nor a LAN to work properly.
   Furthermore, since NAS solutions obligate you to setup and manage
   authentication and authorization for specific folders, this ends
-  up discouraging you from setting "one share + one mount per qube",
-  which reduces your overall security.
+  up discouraging you from adopting "one share + one mount per qube",
+  which reduces your overall security.  Plus, if a qube with access
+  to the share is compromised, then the whole NAS may be attacked
+  from the compromised qube.
+
+For comparison:
+
+* `diod` raw C language line count: *40 thousand*
+* `samba` raw C / C++ language line count: **over 2 million**
+* NFS' line count is homework for the reader.
 
 ## Security considerations
 
