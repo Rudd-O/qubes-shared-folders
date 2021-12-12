@@ -1,8 +1,8 @@
 # Shared folders for Qubes OS
 
-Connect qube storage to another qube.  This project lets you open
-and manage folders saved in one qube (or a file server connected to
-it) from another qube, transparently, as they were in the other qube.
+**Connect qube storage to another qube.**  Access and manage folders
+saved in one qube (or a file server connected to it) from another
+qube, transparently, as they were in the other qube.
 
 We have some [to-do items](./TODO.md) which we'd love your help with!
 
