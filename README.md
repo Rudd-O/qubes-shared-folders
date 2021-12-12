@@ -62,7 +62,8 @@ To finish using it, run `sudo umount /home/user/mnt`.
 
 If your `server` qube shuts off before you unmount the mounted share,
 you'll see `I/O error`s on the `client` qube whenever you attempt
-to access the mounted share.
+to access the mounted share.  You can always unmount the errored
+folder to resolve the issue.
 
 ## Comparison with other solutions
 
