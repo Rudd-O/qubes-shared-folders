@@ -114,7 +114,15 @@ security model, you are better off *not using this program*.
 
 ## Installation
 
-First, build a [`diod`](https://github.com/Rudd-O/diod) RPM package:
+*Note: the following instructions show how to build the packages from
+scratch.  If you want to test using prebuilt packages (for Fedora
+34 on the template, and Fedoa 25 / 32 on dom0), they are available
+[here](https://rudd-o.com/uploads/projects/files/qubes-shared-folders),
+but note they will not be updated in the future, and I cannot guarantee
+their integrity at this time.*
+
+First, build a [`diod`](https://github.com/Rudd-O/diod) RPM package
+(install the `munge-devel` and `ncurses-devel` packages first):
 
 ```
 git clone https://github.com/Rudd-O/diod
