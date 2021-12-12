@@ -10,6 +10,7 @@ This package contains:
 * a program to mount folders in a qube served from other qubes
 * policy (for dom0) to permit or deny the process
 
+There's a number of [to-do items](./TODO.md) for which we'd love your help!
 
 ## Usage
 
