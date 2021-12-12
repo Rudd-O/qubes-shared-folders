@@ -1,16 +1,45 @@
-# Inter-VM shared folders for Qubes OS
+# Shared folders for Qubes OS
 
-This package aims to solve the problem of inter-VM file sharing
-(rather than manual copying) by allowing a VM to mount folders
-from any other VM's file system (or mounted network shares).
+Connect qube storage to another qube.  This project lets you open
+and manage folders saved in one qube (or a file server connected to
+it) from another qube, transparently, as they were in the other qube.
 
-This package contains:
+We have some [to-do items](./TODO.md) which we'd love your help with!
 
-* a Qubes OS `qrexec` service to serve folders from a qube
-* a program to mount folders in a qube served from other qubes
-* policy (for dom0) to permit or deny the process
+## Principle
 
-There's a number of [to-do items](./TODO.md) for which we'd love your help!
+The programs in this project collaborate together to allow a qube
+to *mount* a folder in another qube, using the Plan 9 file system
+as a transport mechanism, with `diod` (a Plan 9 userspace server)
+running on the server qube, and the `v9fs` kernel file system module
+on the client qube.  These two components talk over the Qubes RPC
+mechanism.
+
+The client initiates a Qubes RPC connection to the server qube,
+asking it to share a specific folder (which must exist).  If the RPC
+mechanism authorizes it (by prompting you), then the server qube
+starts a `diod` instance, and the client uses the established I/O
+channel to mount the shared folder onto a folder of its file system
+tree.
+
+## Comparison with other solutions
+
+* File copy/move between VMs: serves a different use case, although
+  admittedly it is more secure than this solution given the smaller
+  attack surface.
+* NFS / SAMBA shared over `qubes.ConnectTCP`: this solution is much
+  simpler, because it requires zero configuration.  This solution
+  should also, by some metrics, be less risky than NFS and SAMBA,
+  which are both much larger codebases with many more features that
+  you are simply *not going to need* in the context of sharing files
+  between qubes.
+* NFS / SAMBA mounted from a NAS: this solution is much simpler than
+  that, and — unlike mounting a NAS share on the target VM — it
+  requires neither other equipment nor a LAN to work properly.
+  Furthermore, since NAS solutions obligate you to setup and manage
+  authentication and authorization for specific folders, this ends
+  up discouraging you from setting "one share + one mount per qube",
+  which reduces your overall security.
 
 ## Usage
 
@@ -43,7 +72,6 @@ To finish using it, run `sudo umount /home/user/mnt`.  Note that
 currently, the connection remains open between `client` and `server`
 even after unmounting, so the only way to sever the connection is
 to power off one of the two qubes.
-
 
 ## Security considerations
 
