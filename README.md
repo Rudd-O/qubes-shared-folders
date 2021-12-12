@@ -22,6 +22,48 @@ starts a `diod` instance, and the client uses the established I/O
 channel to mount the shared folder onto a folder of its file system
 tree.
 
+## Usage
+
+The following instructions assume that the qube which contains the
+files you want to share is named `server` and the qube where you
+want to access the files is named `client`.  They also assume you
+successfully finished the one-time installation instructions below.
+
+### Connect to a folder in another qube
+
+To mount `/home/user` from the `server` VM onto `/home/user/mnt`,
+run the following on a terminal of `client`:
+
+```
+cd /home/user
+mkdir mnt
+qvm-mount-folder server /home/user mnt
+```
+
+At this point you will see an authorization message from dom0 asking
+you if you really want to give `client` access to `server`'s files.
+Note that the access granted is blanket read/write to the requested
+folder and all subfolders (modulo file permissions on the shared
+folder) and, once granted, access lasts until the `server` qube is
+shut off, or the `client` qube unmounts the shared folder.
+
+Authorize the access by confirming the name of the qube (`server` on
+the dialog and continuing.
+
+**Presto.**  You should be able to use a file manager, a terminal, or
+any of your favorite applications to use files in `/home/user/mnt`
+-- these files are all stored in `server` on folder `/home/user`.
+
+### Disconnect from the folder
+
+To finish using it, run `sudo umount /home/user/mnt`.
+
+### In case of error
+
+If your `server` qube shuts off before you unmount the mounted share,
+you'll see `I/O error`s on the `client` qube whenever you attempt
+to access the mounted share.
+
 ## Comparison with other solutions
 
 * File copy/move between VMs: serves a different use case, although
@@ -40,38 +82,6 @@ tree.
   authentication and authorization for specific folders, this ends
   up discouraging you from setting "one share + one mount per qube",
   which reduces your overall security.
-
-## Usage
-
-The following instructions assume that the qube which contains the
-files you want to share is named `server` and the qube where you
-want to access the files is named `client`.  They also assume you
-successfully finished the one-time installation instructions below.
-
-To mount `/home/user` from the `server` VM onto `/home/user/mnt`,
-run the following on a terminal of `client`:
-
-```
-cd /home/user
-mkdir mnt
-qvm-mount-folder server /home/user mnt
-```
-
-At this point you will see an authorization message from dom0 asking
-you if you really want to give `client` access to `server`'s files.
-Note that the access is blanket read/write, and once given.
-
-Authorize the access by confirming the name of the qube (`server` on
-the dialog and continuing.
-
-**Presto.**  You should be able to use a file manager, a terminal, or
-any of your favorite applications to use files in `/home/user/mnt`
--- these files are all stored in `server` on folder `/home/user`.
-
-To finish using it, run `sudo umount /home/user/mnt`.  Note that
-currently, the connection remains open between `client` and `server`
-even after unmounting, so the only way to sever the connection is
-to power off one of the two qubes.
 
 ## Security considerations
 
