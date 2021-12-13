@@ -76,9 +76,9 @@ If we allow the server qube to store and permit policy decisions, then a malicio
 
 # Deliverables
 
-* Service `ruddo.AuthorizeFolderAccess` deployed with Qubes dom0 package.
-* Service `ruddo.ConnectToFolder` deployed with Qubes template VM package.
-* Removal of existing policy and service which gives blanket access to VMs.
-* Mechanism for persisting and managing folder policy decisions and decision data.
-* UI for authorizing folder access.
+* ~~Service `ruddo.AuthorizeFolderAccess` deployed with Qubes dom0 package.~~
+* ~~Service `ruddo.ConnectToFolder` deployed with Qubes template VM package.~~
+* ~~Removal of existing policy and service which gives blanket access to VMs.~~
+* ~~Mechanism for persisting and managing folder policy decisions and decision data.~~
+* ~~UI for authorizing folder access.~~
 * UI for managing existing authorizations and adding new ones ahead of time.
