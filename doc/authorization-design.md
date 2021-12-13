@@ -18,6 +18,8 @@ What we propose is the following:
 2. dom0 asks the user "client qube wants to mount folder `X` on server qube".
 3. The user responds accordingly.  If authorized, the connection is permitted and the client qube can successfully mount `X`.
 
+![Authorization dialog example](./auth-dialog.png)
+
 The Qubes policy argument mechanism is insufficient for the proposed interaction.  For one, it limits the argument size to 64 bytes, making it unsuitable for a wide possibility of paths the user might want to connect to.  Second, it doesn't actually convey the information that the client qube sent — it conveys a form of hobbled information that crucially does not include spaces, slashes, or other special characters, all of which are legitimate in POSIX paths.  Third, the way that the question is presented is not exactly usable.
 
 # Implementation details
@@ -49,7 +51,9 @@ Having obtained the necessary pieces of the puzzle, all verified by a trusted co
 
 If dom0, however, replies to the query folder authorization RPC from the client with a `NAK`, then the client service can simply shut down and leave the server qube cold.
 
-![Authorization implementation diagram](./authorization.png)
+![Authorization implementation diagram](./auth-flow.png)
+
+The [diagram can be downloaded here](./auth-flow.dia).
 
 ## Design questions
 

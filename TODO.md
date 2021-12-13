@@ -1,5 +1,6 @@
 Things I would love to get addressed (of course, other suggestions and improvements welcome):
 
+* No persistent authorization for disposable VMs, either as source or as target
 * Persistent notification on tray that indicates a specific folder is currently exported to a certain qube
 * Performance improvements (it can be slow to browse large folders from a client qube)
 * [Security hardening of diod](https://github.com/Rudd-O/diod) (make check was disabled in the specfile because there are some issues I don't know how to fix, sadly, but I did fix a `snprintf` buffer overflow in my [fork of diod](https://github.com/Rudd-O/diod))
