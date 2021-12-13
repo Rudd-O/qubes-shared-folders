@@ -29,9 +29,9 @@ install-dom0:
 	install -Dm 664 etc/qubes-rpc/policy/ruddo.ConnectToFolder -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/
 	install -Dm 664 etc/qubes-rpc/policy/ruddo.AuthorizeFolderAccess -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/
 	install -Dm 664 etc/qubes-rpc/policy/ruddo.QueryFolderAuthorization -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/
-	getent group qubes >/dev/null 2>&1 || exit ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/ruddo.AuthorizeFolderAccess
-	getent group qubes>/dev/null 2>&1 || exit ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/ruddo.ConnectToFolder
-	getent group qubes >/dev/null 2>&1 || exit ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/ruddo.QueryFolderAuthorization
+	getent group qubes >/dev/null 2>&1 || exit 0 ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/ruddo.AuthorizeFolderAccess
+	getent group qubes>/dev/null 2>&1 || exit 0 ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/ruddo.ConnectToFolder
+	getent group qubes >/dev/null 2>&1 || exit 0 ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/ruddo.QueryFolderAuthorization
 	install -Dm 755 etc/qubes-rpc/ruddo.AuthorizeFolderAccess -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/
 	install -Dm 755 etc/qubes-rpc/ruddo.QueryFolderAuthorization -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/
 	install -Dm 755 libexec/qvm-authorize-folder-access -t $(DESTDIR)/$(LIBEXECDIR)/
@@ -39,7 +39,7 @@ install-dom0:
 	install -Dm 644 py/sharedfolders/*.py -t $(DESTDIR)/$(SITEPACKAGES)/sharedfolders/
 	mkdir -p $(DESTDIR)/$(SYSCONFDIR)/qubes/shared-folders
 	chmod 2775 $(DESTDIR)/$(SYSCONFDIR)/qubes/shared-folders
-	getent group qubes >/dev/null 2>&1 || exit ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes/shared-folders
+	getent group qubes >/dev/null 2>&1 || exit 0 ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes/shared-folders
 
 black:
 	grep "^#!/usr/bin/python3" -r . | cut -d : -f 1 | sort | uniq | xargs -n1 black
