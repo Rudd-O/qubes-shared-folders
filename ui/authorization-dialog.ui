@@ -2,17 +2,9 @@
 <interface>
   <requires lib="gtk+" version="2.24"/>
   <!-- interface-naming-policy project-wide -->
-  <object class="GtkRadioButton" id="options">
-    <property name="label" translatable="yes">radiobutton</property>
-    <property name="visible">True</property>
-    <property name="can_focus">True</property>
-    <property name="receives_default">False</property>
-    <property name="active">True</property>
-    <property name="draw_indicator">True</property>
-  </object>
   <object class="GtkDialog" id="dialog">
     <property name="can_focus">False</property>
-    <property name="border_width">5</property>
+    <property name="border_width">18</property>
     <property name="resizable">False</property>
     <property name="type_hint">dialog</property>
     <signal name="close" handler="closed" swapped="no"/>
@@ -70,7 +62,7 @@
           <object class="GtkVBox" id="vbox1">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="spacing">12</property>
+            <property name="spacing">6</property>
             <child>
               <object class="GtkHBox" id="hbox1">
                 <property name="visible">True</property>
@@ -104,7 +96,7 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">True</property>
+                <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="position">0</property>
               </packing>
@@ -141,9 +133,8 @@
                 <property name="can_focus">False</property>
                 <property name="xalign">0</property>
                 <property name="label" translatable="yes">Granting access will mean that %(client)s &lt;i&gt;will have access to all files&lt;/i&gt; under that folder.
-&lt;b&gt;Do not grant access if you did not initiate this request.&lt;/b&gt;
-
-Choose how you would like to proceed:</property>
+Access remains active at least until %(client)s stops using it, or %(server)s shuts down.
+&lt;b&gt;Do not grant access if you did not initiate this request.&lt;/b&gt;</property>
                 <property name="use_markup">True</property>
               </object>
               <packing>
@@ -157,8 +148,8 @@ Choose how you would like to proceed:</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <child>
-                  <object class="GtkRadioButton" id="option_allow_onetime">
-                    <property name="label" translatable="yes">Grant one-time access to the folder</property>
+                  <object class="GtkRadioButton" id="option_allow">
+                    <property name="label" translatable="yes">Grant access to the folder</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
@@ -172,12 +163,11 @@ Choose how you would like to proceed:</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkRadioButton" id="option_allow_always">
-                    <property name="label" translatable="yes">Grant access to the folder and remember this decision</property>
+                  <object class="GtkRadioButton" id="option_deny">
+                    <property name="label" translatable="yes">Deny access to the folder</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="yalign">0.4699999988079071</property>
                     <property name="draw_indicator">True</property>
                     <property name="group">options</property>
                   </object>
@@ -188,14 +178,14 @@ Choose how you would like to proceed:</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkRadioButton" id="option_deny_onetime">
-                    <property name="label" translatable="yes">Deny access to the folder this time</property>
+                  <object class="GtkRadioButton" id="option_block">
+                    <property name="label" translatable="yes">Deny access to all folders and all future requests for access</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="active">True</property>
                     <property name="draw_indicator">True</property>
                     <property name="group">options</property>
+                    <signal name="toggled" handler="block_selected" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">True</property>
@@ -204,17 +194,17 @@ Choose how you would like to proceed:</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkRadioButton" id="option_deny_always">
-                    <property name="label" translatable="yes">Deny access to the folder and remember this decision</property>
+                  <object class="GtkCheckButton" id="option_remember">
+                    <property name="label" translatable="yes">Remember this decision (use the folder share manager to revise)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
                     <property name="draw_indicator">True</property>
-                    <property name="group">options</property>
                   </object>
                   <packing>
                     <property name="expand">True</property>
                     <property name="fill">True</property>
+                    <property name="padding">6</property>
                     <property name="position">3</property>
                   </packing>
                 </child>
@@ -222,7 +212,7 @@ Choose how you would like to proceed:</property>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="padding">8</property>
+                <property name="padding">6</property>
                 <property name="position">4</property>
               </packing>
             </child>
@@ -239,5 +229,13 @@ Choose how you would like to proceed:</property>
       <action-widget response="1">button1</action-widget>
       <action-widget response="0">ok</action-widget>
     </action-widgets>
+  </object>
+  <object class="GtkRadioButton" id="options">
+    <property name="label" translatable="yes">radiobutton</property>
+    <property name="visible">True</property>
+    <property name="can_focus">True</property>
+    <property name="receives_default">False</property>
+    <property name="active">True</property>
+    <property name="draw_indicator">True</property>
   </object>
 </interface>

@@ -16,6 +16,7 @@ RESPONSE_ALLOW_ONETIME = "ALLOW_ONETIME"
 RESPONSE_DENY_ONETIME = "DENY_ONETIME"
 RESPONSE_ALLOW_ALWAYS = "ALLOW_ALWAYS"
 RESPONSE_DENY_ALWAYS = "DENY_ALWAYS"
+RESPONSE_BLOCK = "BLOCK"
 RESPONSE_ALLOW_PREFIX = "ALLOW"
 RESPONSE_DENY_PREFIX = "DENY"
 POLICY_DB = "/etc/qubes/shared-folders/policy.db"
@@ -55,6 +56,10 @@ def deny():
 
 def reject():
     sys.exit(errno.EINVAL)
+
+
+def is_disp(vm):
+    return re.match("^disp[0-9]+$", vm)
 
 
 def validate_target_vm(target):
@@ -191,6 +196,12 @@ def lookup_decision_folder(fingerprint, requested_folder):
 
 
 def process_decision_output(source, target, folder, response):
+    if response == RESPONSE_BLOCK:
+        # The user means to block ALL, so we transform this into
+        # a complete block for the machine, by blocking the root
+        # directory, which means to block absolutely everything.
+        response = RESPONSE_DENY_ALWAYS
+        folder = "/"
     matrix = load_decision_matrix()
     fingerprint = fingerprint_decision(source, target, folder)
     decision = {

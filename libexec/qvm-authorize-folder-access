@@ -3,6 +3,7 @@
 import errno
 import gi
 import os
+import re
 import sys
 
 from sharedfolders import (
@@ -10,6 +11,8 @@ from sharedfolders import (
     RESPONSE_ALLOW_ALWAYS,
     RESPONSE_DENY_ONETIME,
     RESPONSE_DENY_ALWAYS,
+    RESPONSE_BLOCK,
+    is_disp,
 )
 
 gi.require_version("Gtk", "3.0")
@@ -38,7 +41,9 @@ class AuthorizationDialog(object):
         self.dialog = builder.get_object("dialog")
         self.dialog.set_title("Folder share request from %(client)s" % locals())
         self.builder.connect_signals(self)
-        self.builder.get_object("option_deny_onetime").set_active(True)
+        if is_disp(client) or is_disp(server):
+            self.builder.get_object("option_remember").set_sensitive(False)
+        self.builder.get_object("option_deny").set_active(True)
         self.builder.get_object("text").set_markup(
             self.builder.get_object("text").get_label() % locals()
         )
@@ -47,6 +52,18 @@ class AuthorizationDialog(object):
         )
         self.builder.get_object("folder").set_text(folder)
         self.collect_response()
+        self.prior_remember_active = None
+        self.prior_remember_sensitive = None
+
+    def block_selected(self, radio):
+        if radio.get_active():
+            self.prior_remember_active = self.builder.get_object("option_remember").get_active()
+            self.prior_remember_sensitive = self.builder.get_object("option_remember").get_sensitive()
+            self.builder.get_object("option_remember").set_active(True)
+            self.builder.get_object("option_remember").set_sensitive(False)
+        else:
+            self.builder.get_object("option_remember").set_active(self.prior_remember_active)
+            self.builder.get_object("option_remember").set_sensitive(self.prior_remember_sensitive)
 
     def show_all(self):
         self.dialog.show_all()
@@ -59,14 +76,19 @@ class AuthorizationDialog(object):
 
     def collect_response(self):
         table = [
-            ("option_deny_onetime", RESPONSE_DENY_ONETIME),
-            ("option_deny_always", RESPONSE_DENY_ALWAYS),
-            ("option_allow_onetime", RESPONSE_ALLOW_ONETIME),
-            ("option_allow_always", RESPONSE_ALLOW_ALWAYS),
+            ("option_deny", RESPONSE_DENY_ONETIME),
+            ("option_allow", RESPONSE_ALLOW_ONETIME),
+            ("option_block", RESPONSE_BLOCK),
         ]
         for objn, resp in table:
             if self.builder.get_object(objn).get_active():
                 self.response = resp
+        if self.response != RESPONSE_BLOCK:
+            if self.builder.get_object("option_remember").get_active():
+                if self.response == RESPONSE_ALLOW_ONETIME:
+                    self.response = RESPONSE_ALLOW_ALWAYS
+                elif self.response == RESPONSE_DENY_ONETIME:
+                    self.response = RESPONSE_DENY_ALWAYS
 
     def response(self, unused_dialog, response):
         if response == 1:
