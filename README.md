@@ -70,6 +70,14 @@ folder to resolve the issue.
 * File copy/move between VMs: serves a different use case, although
   admittedly it is more secure than this solution given the smaller
   attack surface.
+* `rsync` via qrexec / `qubes.ConnectTCP`: large codebase to trust,
+  plus extremely inconvenient compared to a simple mounted file share,
+  as the user has to (1) configure low-level settings (2) manage the
+  synchronization manually (3) take care to remember to sync up.
+* Syncthing: in principle, it can work to synchronize across qubes,
+  as well as other equipment.  However, it requires networking,
+  it's a large codebase, and it results in duplication of files
+  across all synced qubes.
 * NFS / SAMBA shared over `qubes.ConnectTCP`: this solution is much
   simpler, because it requires zero configuration.  This solution
   should also, by some metrics, be less risky than NFS and SAMBA,
@@ -90,7 +98,7 @@ For comparison:
 
 * `diod` raw C language line count: *40 thousand*
 * `samba` raw C / C++ language line count: **over 2 million**
-* NFS' line count is homework for the reader.
+* NFS' and rsync's line counts are homework for the reader.
 
 ## Security considerations
 
