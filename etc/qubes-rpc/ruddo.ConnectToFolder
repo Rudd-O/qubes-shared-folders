@@ -10,7 +10,14 @@ fi
 fingerprint="$QREXEC_SERVICE_ARGUMENT"
 
 ret=0
+# Read the folder that the user intends to mount.
+# We pass it blindly to QueryFolderAuthorization, which will then
+# check if the user has permission to mount the specific folder
+# or a subfolder thereof, doing the base64 decoding prior to that.
 read -n 6000 requested_folder_base64
+# Now read the requested folder (will come out empty if it was not authorized).
+# We do not bother with base64 encoding here because the remote side will close
+# the pipe, so we already have a sturdy mechanism to obtain the returned folder.
 requested_folder=$(echo "$requested_folder_base64" | qrexec-client-vm dom0 ruddo.QueryFolderAuthorization+"$fingerprint") || ret=$?
 if [ "$ret" != "0" ] ; then
     echo 'Request refused' >&2
@@ -26,6 +33,9 @@ if [ ! -d "$requested_folder" ] ; then
     echo "error: the folder to be shared $requested_folder does not exist or is not a directory" >&2
     exit 2
 fi
+# Good news!  The folder exists, and is within the scope of the
+# permissions that have been granted to the caller.  We proceed
+# and signal to the caller that we are about to start diod.
 echo ok
 
 exec /usr/sbin/diod -f -r 0 -w 1 -n -H -e "$requested_folder" -S || {

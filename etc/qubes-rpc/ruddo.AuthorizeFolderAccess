@@ -79,9 +79,8 @@ else:
     logger.info("VM %s has yet to receive a response for %s:%s", source, target, folder)
     # User has never been asked.
     response = ask_for_authorization(source, target, folder)
-    logger.info("Response: %s", response)
     fingerprint = process_decision_output(source, target, folder, response)
-    logger.info("Fingerprint: %s", fingerprint)
+    logger.info("Response: %s; fingerprint: %s", response, fingerprint)
 if response.startswith(RESPONSE_DENY_PREFIX):
     deny()
 

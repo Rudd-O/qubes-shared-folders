@@ -24,6 +24,9 @@ if not fingerprint:
     print("error: this RPC call requires an argument", file=sys.stderr)
     reject()
 
+# Read the requested folder from the caller.  The caller is NOT
+# the VM which wants to mount the folder -- it is rather the
+# server VM that has the desired folder to be mounted.
 requested_folder_encoded = sys.stdin.buffer.read()
 try:
     requested_folder = base_to_str(requested_folder_encoded)
@@ -35,9 +38,12 @@ except Exception:
     )
     reject()
 
-
+# Look up the folder in the authorization database.  If the
+# requested folder is exactly or is a subfolder of any of the
+# authorized folders, we will succeed in this call.
 folder = lookup_decision_folder(fingerprint, requested_folder)
 if not folder:
     deny()
 
+# Send the requested folder back to the client.
 print(requested_folder)
