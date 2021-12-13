@@ -16,6 +16,7 @@ Source0:        https://github.com/Rudd-O/%{name}/archive/{%version}.tar.gz#/%{n
 
 BuildRequires:  make
 BuildRequires:  python3
+BuildRequires:  python3-mock
 Requires:       bash
 Requires:       python3
 Requires:       qubes-core-agent-qrexec
