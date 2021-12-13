@@ -52,3 +52,12 @@ If dom0, however, replies to the query folder authorization RPC from the client 
 ## Why not use the existing interaction mechanism to ask dom0 for authorization?
 
 We don't want the default policy decision-making service asking the customary allow/deny question, which would lead to confusion and bafflement when the user gets a second, more informative policy dialog later.
+
+# Deliverables
+
+* Service `ruddo.AuthorizeFolderAccess` deployed with Qubes dom0 package.
+* Service `ruddo.ConnectToFolder` deployed with Qubes template VM package.
+* Removal of existing policy and service which gives blanket access to VMs.
+* Mechanism for persisting and managing folder policy decisions and decision data.
+* UI for authorizing folder access.
+* UI for managing existing authorizations and adding new ones ahead of time.
