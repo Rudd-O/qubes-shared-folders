@@ -50,6 +50,7 @@ rm -rf $RPM_BUILD_ROOT
 for target in install-client install-dom0; do
     make $target DESTDIR=$RPM_BUILD_ROOT BINDIR=%{_bindir} SYSCONFDIR=%{_sysconfdir} LIBEXECDIR=%{_libexecdir} DATADIR=%{_datadir}
 done
+touch $RPM_BUILD_ROOT/%{_sysconfdir}/qubes/shared-folders/policy.db
 
 %check
 if grep -r '@.*@' $RPM_BUILD_ROOT ; then
@@ -68,6 +69,7 @@ fi
 %config(noreplace) %attr(0664, root, qubes) %{_sysconfdir}/qubes-rpc/policy/ruddo.QueryFolderAuthorization
 %config(noreplace) %attr(0664, root, qubes) %{_sysconfdir}/qubes-rpc/policy/ruddo.ConnectToFolder
 %dir %attr(2775, root, qubes) %{_sysconfdir}/qubes/shared-folders
+%ghost %attr(0664, root, qubes) %{_sysconfdir}/qubes/shared-folders/policy.db
 %attr(0755, root, root) %{_sysconfdir}/qubes-rpc/ruddo.AuthorizeFolderAccess
 %attr(0755, root, root) %{_sysconfdir}/qubes-rpc/ruddo.QueryFolderAuthorization
 %attr(0755, root, root) %{_libexecdir}/qvm-authorize-folder-access
