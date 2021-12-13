@@ -1,0 +1,86 @@
+#!/usr/bin/python3
+
+import errno
+import gi
+import os
+import sys
+
+from sharedfolders import (
+    RESPONSE_ALLOW_ONETIME,
+    RESPONSE_ALLOW_ALWAYS,
+    RESPONSE_DENY_ONETIME,
+    RESPONSE_DENY_ALWAYS,
+)
+
+gi.require_version("Gtk", "3.0")
+gi.require_version("Notify", "0.7")
+
+from gi.repository import Gtk
+from gi.repository import Notify
+
+
+def search_for_ui_file(file):
+    for trial in [
+        os.path.join("ui", file),
+        os.path.join("/usr/share/qubes-shared-folders/ui", file),
+    ]:
+        if os.path.exists(trial):
+            return trial
+    raise FileNotFound(file)
+
+
+class AuthorizationDialog(object):
+    def __init__(self, client, server, folder):
+        builder = Gtk.Builder()
+        builder.add_from_file(search_for_ui_file("authorization-dialog.ui"))
+        # builder.connect_signals()
+        self.builder = builder
+        self.dialog = builder.get_object("dialog")
+        self.dialog.set_title("Folder share request from %(client)s" % locals())
+        self.builder.connect_signals(self)
+        self.builder.get_object("option_deny_onetime").set_active(True)
+        self.builder.get_object("text").set_markup(
+            self.builder.get_object("text").get_label() % locals()
+        )
+        self.builder.get_object("explanation").set_markup(
+            self.builder.get_object("explanation").get_label() % locals()
+        )
+        self.builder.get_object("folder").set_text(folder)
+        self.collect_response()
+
+    def show_all(self):
+        self.dialog.show_all()
+
+    def closed(self, *unused_args):
+        Gtk.main_quit()
+
+    def destroyed(self, *unused_args):
+        Gtk.main_quit()
+
+    def collect_response(self):
+        table = [
+            ("option_deny_onetime", RESPONSE_DENY_ONETIME),
+            ("option_deny_always", RESPONSE_DENY_ALWAYS),
+            ("option_allow_onetime", RESPONSE_ALLOW_ONETIME),
+            ("option_allow_always", RESPONSE_ALLOW_ALWAYS),
+        ]
+        for objn, resp in table:
+            if self.builder.get_object(objn).get_active():
+                self.response = resp
+
+    def response(self, unused_dialog, response):
+        if response == 1:
+            assert 0, "Folder share manager not implemented"
+        elif response == -4:
+            # User closed the dialog, we exit with the default response.
+            self.dialog.destroy()
+        elif response == 0:
+            # User made an affirmative choice.
+            self.collect_response()
+            self.dialog.destroy()
+
+
+authd = AuthorizationDialog(*sys.argv[1:])
+authd.show_all()
+Gtk.main()
+print(authd.response)

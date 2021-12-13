@@ -1,0 +1,4 @@
+## This policy allows VMs to ask for share folder authorization.
+
+$anyvm dom0 allow
+$anyvm $anyvm deny

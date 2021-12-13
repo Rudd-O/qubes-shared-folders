@@ -42,10 +42,12 @@ qvm-mount-folder server /home/user mnt
 
 At this point you will see an authorization message from dom0 asking
 you if you really want to give `client` access to `server`'s files.
-Note that the access granted is blanket read/write to the requested
-folder and all subfolders (modulo file permissions on the shared
-folder) and, once granted, access lasts until the `server` qube is
-shut off, or the `client` qube unmounts the shared folder.
+This access can be denied one-time or perpetually, and it can also
+be granted one-time (for the duration of the mount) or permanently.
+Note that the access granted is limited to the requested folder and
+all subfolders (modulo file permissions on the shared folder) and,
+once granted, access lasts until the `server` qube is shut off, or
+the `client` qube unmounts the shared folder.
 
 Authorize the access by confirming the name of the qube (`server` on
 the dialog and continuing.

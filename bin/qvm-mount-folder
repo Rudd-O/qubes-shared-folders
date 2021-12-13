@@ -35,7 +35,32 @@ except IndexError:
 if not os.path.isdir(target):
     error("%s does not exist or is not a directory" % target)
 
-encoded = base64.standard_b64encode(source.encode("utf-8"))
+vm_encoded = base64.standard_b64encode(vm.encode("utf-8"))
+folder_encoded = base64.standard_b64encode(source.encode("utf-8"))
+
+
+p = subprocess.Popen(
+    ["qrexec-client-vm", "dom0", "ruddo.AuthorizeFolderAccess"],
+    stdin=subprocess.PIPE,
+    stdout=subprocess.PIPE,
+    bufsize=0,
+    close_fds=True,
+)
+p.stdin.write(vm_encoded + b"\n")
+p.stdin.write(folder_encoded + b"\n")
+p.stdin.close()
+fingerprint = p.stdout.read()
+p.stdout.close()
+ret = p.wait()
+
+if ret != 0:
+    if ret == errno.EACCES:
+        print("Request denied", file=sys.stderr)
+    elif ret == errno.EINVAL:
+        print("Invalid parameters", file=sys.stderr)
+    else:
+        print("Unknown error", file=sys.stderr)
+    sys.exit(ret)
 
 f1_read, f1_write = os.pipe2(0)
 f2_read, f2_write = os.pipe2(0)
@@ -46,7 +71,7 @@ stdin_for_write = os.fdopen(f1_write, "wb", buffering=0)
 stdout_for_read = os.fdopen(f2_read, "rb", buffering=0)
 
 p = subprocess.Popen(
-    ["qrexec-client-vm", vm, "ruddo.ShareFolder"],
+    ["qrexec-client-vm", vm, "ruddo.ConnectToFolder+%s" % fingerprint.decode("utf-8")],
     stdin=stdin_for_read,
     stdout=stdout_for_write,
     bufsize=0,
@@ -55,13 +80,12 @@ p = subprocess.Popen(
 stdin_for_read.close()
 stdout_for_write.close()
 
-stdin_for_write.write(encoded + b"\n")
+stdin_for_write.write(folder_encoded + b"\n")
 response = stdout_for_read.read(3).decode("utf-8").rstrip()
 if response == "ok":
     # proceed
     pass
 elif response == "":
-    sys.stdout.close()
     # folder does not exist
     exit = p.wait()
     if exit == 2:

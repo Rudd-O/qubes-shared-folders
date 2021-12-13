@@ -49,6 +49,8 @@ Having obtained the necessary pieces of the puzzle, all verified by a trusted co
 
 If dom0, however, replies to the query folder authorization RPC from the client with a `NAK`, then the client service can simply shut down and leave the server qube cold.
 
+![Authorization implementation diagram](./authorization.png)
+
 ## Design questions
 
 ### Why not use the existing interaction mechanism to ask dom0 for authorization?

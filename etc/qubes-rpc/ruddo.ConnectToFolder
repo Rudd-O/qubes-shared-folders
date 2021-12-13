@@ -1,0 +1,35 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+if [ "$QREXEC_SERVICE_ARGUMENT" == "" ] ; then
+    echo 'error: an argument specifying the fingerprint for the folder to be shared is required' >&2
+    exit 126
+fi
+fingerprint="$QREXEC_SERVICE_ARGUMENT"
+
+ret=0
+read -n 6000 requested_folder_base64
+requested_folder=$(echo "$requested_folder_base64" | qrexec-client-vm dom0 ruddo.QueryFolderAuthorization+"$fingerprint") || ret=$?
+if [ "$ret" != "0" ] ; then
+    echo 'Request refused' >&2
+    exit 126
+fi
+
+if [ "$requested_folder" == "" ] ; then
+    echo 'error: Qubes dom0 failed to reply with the folder to be shared' >&2
+    exit 126
+fi
+
+if [ ! -d "$requested_folder" ] ; then
+    echo "error: the folder to be shared $requested_folder does not exist or is not a directory" >&2
+    exit 2
+fi
+echo ok
+
+exec /usr/sbin/diod -f -r 0 -w 1 -n -H -e "$requested_folder" -S || {
+    ret=$?
+    echo "error: diod is not installed" >&2
+    exit $ret
+}

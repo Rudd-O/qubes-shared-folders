@@ -1,0 +1,36 @@
+#!/usr/bin/python3
+
+import logging
+import os
+import sys
+
+from sharedfolders import lookup_decision_folder, deny, reject, contains, base_to_str, validate_path
+
+
+logging.basicConfig(level=logging.INFO)
+
+
+DENIED = 126
+
+fingerprint = os.getenv("QREXEC_SERVICE_ARGUMENT")
+if not fingerprint:
+    print("error: this RPC call requires an argument", file=sys.stderr)
+    reject()
+
+requested_folder_encoded = sys.stdin.buffer.read()
+try:
+    requested_folder = base_to_str(requested_folder_encoded)
+    validate_path(requested_folder)
+except Exception:
+    print(
+        "error: the requested folder is malformed, is not a proper absolute path, or has invalid characters",
+        file=sys.stderr,
+    )
+    reject()
+
+
+folder = lookup_decision_folder(fingerprint, requested_folder)
+if not folder:
+    deny()
+
+print(requested_folder)
