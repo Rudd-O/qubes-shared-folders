@@ -49,13 +49,24 @@ Having obtained the necessary pieces of the puzzle, all verified by a trusted co
 
 If dom0, however, replies to the query folder authorization RPC from the client with a `NAK`, then the client service can simply shut down and leave the server qube cold.
 
-## Why not use the existing interaction mechanism to ask dom0 for authorization?
+## Design questions
+
+### Why not use the existing interaction mechanism to ask dom0 for authorization?
 
 We don't want the default policy decision-making service asking the customary allow/deny question, which would lead to confusion and bafflement when the user gets a second, more informative policy dialog later.
+
+### Why not let the server qube RPC service be the one asking for authorization (directly or via dom0)?
+
+If we allow the server qube to ask dom0 (and therefore the user) "may so-and-so to access /so/and/so?" then the *source* of the question is not trusted — dom0 cannot verify that the client qube is who it says it is.  Thus the design requires that the server ask *dom0* for authorization *first*, and then dom0 can use that information to inform the client whether it should or should not allow access.
+
+If we allow the server qube to store and permit policy decisions, then a malicious client VM could tamper with the policy decisions and allow for information disclosure to other malicious client VMs on the system.
+
 
 ## Corner cases
 
 * How do we deal with DispVMs?  I think the reasonble thing to do is to prohibit always-allow access in those cases, since that could lead to intended access to a DispVM permitted today, but unintended access permitted to another DispVM (with the same random number) created months down the road.
+* Access to dom0 will never be allowed.  The service `ruddo.ConnectToFolder` will simply not be made available.
+* It is possible for client qubes to request access to server folders that do not exist.  This is presumably fine given the alternative of unauthorized information disclosure.
 
 # Deliverables
 
