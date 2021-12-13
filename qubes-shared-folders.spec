@@ -72,7 +72,7 @@ fi
 %config(noreplace) %attr(0664, root, qubes) %{_sysconfdir}/qubes-rpc/policy/ruddo.QueryFolderAuthorization
 %config(noreplace) %attr(0664, root, qubes) %{_sysconfdir}/qubes-rpc/policy/ruddo.ConnectToFolder
 %dir %attr(2775, root, qubes) %{_sysconfdir}/qubes/shared-folders
-%ghost %attr(0664, root, qubes) %{_sysconfdir}/qubes/shared-folders/policy.db
+%ghost %config(noreplace) %attr(0664, root, qubes) %{_sysconfdir}/qubes/shared-folders/policy.db
 %attr(0755, root, root) %{_sysconfdir}/qubes-rpc/ruddo.AuthorizeFolderAccess
 %attr(0755, root, root) %{_sysconfdir}/qubes-rpc/ruddo.QueryFolderAuthorization
 %attr(0755, root, root) %{_libexecdir}/qvm-authorize-folder-access
