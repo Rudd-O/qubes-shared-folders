@@ -3,14 +3,17 @@
 set -e
 set -o pipefail
 
-read folder
+maxchars=$(getconf PATH_MAX /)
+read -n $(( $maxchars * 2 )) folder
+
 folder=$(echo "$folder" | base64 -d) || {
    echo 'error: the folder passed as argument could not be decoded'
+   exit 22
 }
 
 if [ "$folder" == "" ] ; then
     echo 'error: an argument specifying the folder to be shared is required' >&2
-    exit 4
+    exit 22
 fi
 
 if [ ! -d "$folder" ] ; then
