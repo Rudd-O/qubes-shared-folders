@@ -35,6 +35,11 @@ if os.getenv("QREXEC_REQUESTED_TARGET_TYPE") != "name":
     print("error: only specific VMs are acceptable as targets", file=sys.stderr)
     reject()
 
+source = os.getenv("QREXEC_REMOTE_DOMAIN")
+if not source:
+    print("error: no source VM", file=sys.stderr)
+    reject()
+
 arguments = sys.stdin.buffer.read(int(PATH_MAX * 130 / 100 + VM_NAME_MAX))
 sys.stdin.close()
 try:
@@ -52,6 +57,11 @@ except Exception:
         "error: the target VM is malformed or has invalid characters", file=sys.stderr
     )
     reject()
+if source == target:
+    print(
+        "error: cannot request file share to and from the same VM", file=sys.stderr
+    )
+    reject()
 
 try:
     folder = base_to_str(base64_folder)
@@ -64,7 +74,6 @@ except Exception:
     reject()
 
 
-source = os.getenv("QREXEC_REMOTE_DOMAIN")
 response, fingerprint = lookup_decision_response(source, target, folder)
 if response:
     logger.info(

@@ -1,6 +1,5 @@
 Things I would love to get addressed (of course, other suggestions and improvements welcome):
 
-* Prevent shared access from one VM to the same VM
 * Add throttling for authorization dialog so VMs can't pop a thousand of them
 * Add serialized locking to reads and modifications of the policy database
 * Add a manager UI to control shared folder authorizations (folder share manager)
