@@ -4,7 +4,14 @@ import logging
 import os
 import sys
 
-from sharedfolders import lookup_decision_folder, deny, reject, contains, base_to_str, validate_path
+from sharedfolders import (
+    lookup_decision_folder,
+    deny,
+    reject,
+    contains,
+    base_to_str,
+    validate_path,
+)
 
 
 logging.basicConfig(level=logging.INFO)

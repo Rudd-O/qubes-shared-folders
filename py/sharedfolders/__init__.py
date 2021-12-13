@@ -177,7 +177,9 @@ def lookup_decision_folder(fingerprint, requested_folder):
     matrix = load_decision_matrix()
     match = matrix.get(fingerprint)
     if match and contains(requested_folder, match["folder"]):
-        logger.info("Requested folder %s is contained in folder %s", requested_folder, match)
+        logger.info(
+            "Requested folder %s is contained in folder %s", requested_folder, match
+        )
         if match["response"] == RESPONSE_ALLOW_ONETIME:
             del matrix[fingerprint]
             logger.info("One-time decision expired, applying policy changes")
@@ -186,7 +188,7 @@ def lookup_decision_folder(fingerprint, requested_folder):
         logger.info("Returning containing folder")
         return match["folder"]
     logger.info("No approved requests for folder %s", requested_folder)
-    
+
 
 def process_decision_output(source, target, folder, response):
     matrix = load_decision_matrix()
