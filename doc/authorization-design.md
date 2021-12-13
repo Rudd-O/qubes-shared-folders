@@ -53,6 +53,10 @@ If dom0, however, replies to the query folder authorization RPC from the client 
 
 We don't want the default policy decision-making service asking the customary allow/deny question, which would lead to confusion and bafflement when the user gets a second, more informative policy dialog later.
 
+## Corner cases
+
+* How do we deal with DispVMs?  I think the reasonble thing to do is to prohibit always-allow access in those cases, since that could lead to intended access to a DispVM permitted today, but unintended access permitted to another DispVM (with the same random number) created months down the road.
+
 # Deliverables
 
 * Service `ruddo.AuthorizeFolderAccess` deployed with Qubes dom0 package.
