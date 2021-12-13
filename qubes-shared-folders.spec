@@ -3,7 +3,7 @@
 %define mybuildnumber %{?build_number}%{?!build_number:1}
 
 Name:           qubes-shared-folders
-Version:        0.0.5
+Version:        0.0.6
 Release:        %{mybuildnumber}%{?dist}
 Summary:        Inter-VM folder sharing via Plan 9 filesystem
 BuildArch:      noarch
@@ -56,7 +56,7 @@ fi
 %attr(0755, root, root) %{_bindir}/qvm-mount-folder
 %attr(0755, root, root) %{_libexecdir}/qvm-share-folder
 %attr(0755, root, root) %{_sysconfdir}/qubes-rpc/ruddo.ShareFolder
-%doc README.md TODO.md
+%doc README.md TODO.md doc/*
 
 %files dom0
 %config(noreplace) %attr(0664, root, qubes) %{_sysconfdir}/qubes-rpc/policy/ruddo.ShareFolder
