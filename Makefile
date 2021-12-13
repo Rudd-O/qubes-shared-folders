@@ -6,10 +6,11 @@ DESTDIR=
 PROGNAME=qubes-shared-folders
 SITEPACKAGES=$(shell python3 -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")
 
-.PHONY: clean install-client install-dom0 black
+.PHONY: clean install-client install-dom0 black test
 
 clean:
 	find -name '*~' -print0 | xargs -0 rm -fv
+	find -name '__pycache__' -print0 | xargs -0 rm -rf
 	rm -fv *.tar.gz *.rpm
 
 dist: clean
@@ -43,3 +44,6 @@ install-dom0:
 
 black:
 	grep "^#!/usr/bin/python3" -r . | cut -d : -f 1 | sort | uniq | xargs -n1 black
+
+test:
+	cd py/sharedfolders && export PYTHONPATH="\$PWD"/.. && python3 -m unittest -v

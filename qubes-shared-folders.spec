@@ -15,6 +15,7 @@ URL:            https://github.com/Rudd-O/%{name}
 Source0:        https://github.com/Rudd-O/%{name}/archive/{%version}.tar.gz#/%{name}-%{version}.tar.gz
 
 BuildRequires:  make
+BuildRequires:  python3
 Requires:       bash
 Requires:       python3
 Requires:       qubes-core-agent-qrexec
@@ -53,6 +54,7 @@ done
 touch $RPM_BUILD_ROOT/%{_sysconfdir}/qubes/shared-folders/policy.db
 
 %check
+make test
 if grep -r '@.*@' $RPM_BUILD_ROOT ; then
     echo "Check failed: files with AT identifiers appeared" >&2
     exit 1
