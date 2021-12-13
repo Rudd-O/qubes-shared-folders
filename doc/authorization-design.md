@@ -1,4 +1,4 @@
-# Authorization design
+# Next-gen folder share authorization design
 
 Initially, Qubes shared folders used standard Qubes RPC authentication to decide whether to grant access to the folders of a qube (called *server* in this document) initiated by another qube (called *client* in this document).
 
