@@ -13,9 +13,6 @@ from sharedfolders import (
     RESPONSES,
     DecisionMatrix,
     base_to_str,
-    deny,
-    reject,
-    error,
     valid_vm_name,
     valid_path,
     PATH_MAX,
@@ -24,6 +21,20 @@ from sharedfolders import (
     setup_logging,
     Response,
 )
+
+
+def error(message: str, exitstatus: int = 4) -> int:
+    print("error:", message, file=sys.stderr)
+    return exitstatus
+
+
+def reject(message: str) -> int:
+    return error(message, errno.EINVAL)
+
+
+def deny() -> int:
+    print("Request refused", file=sys.stderr)
+    return errno.EACCES
 
 
 def ask_for_authorization(source: str, target: str, folder: str) -> Response:

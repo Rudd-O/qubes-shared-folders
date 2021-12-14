@@ -89,20 +89,6 @@ def base_to_str(binarydata: bytes) -> str:
     return data.decode("utf-8")
 
 
-def error(message: str, exitstatus: int = 4) -> int:
-    print("error:", message, file=sys.stderr)
-    return exitstatus
-
-
-def reject(message: str) -> int:
-    return error(message, errno.EINVAL)
-
-
-def deny() -> int:
-    print("Request refused", file=sys.stderr)
-    return errno.EACCES
-
-
 def is_disp(vm: str) -> bool:
     return bool(re.match("^disp[0-9]+$", vm))
 
