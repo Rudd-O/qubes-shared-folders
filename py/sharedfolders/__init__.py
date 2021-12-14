@@ -30,6 +30,9 @@ class Response(object):
     def is_deny(self) -> bool:
         return self.name.startswith("DENY")
 
+    def is_onetime(self) -> bool:
+        return self.name.endswith("ONETIME")
+
     @staticmethod
     def from_string(string: str) -> Response:
         r = {
@@ -154,10 +157,7 @@ class DecisionMatrix(Dict[str, Decision]):
 
     def revoke_onetime_accesses_for_fingerprint(self, fingerprint: str) -> None:
         """This method mutates the internal state and updates the policy on disk."""
-        if fingerprint in self and self[fingerprint].response in (
-            RESPONSE_DENY_ONETIME,
-            RESPONSE_ALLOW_ONETIME,
-        ):
+        if fingerprint in self and self[fingerprint].response.is_onetime():
             logger.info(
                 "One-time decision expired for %s, applying policy changes", fingerprint
             )
@@ -201,12 +201,7 @@ class DecisionMatrix(Dict[str, Decision]):
         self.revoke_onetime_accesses_for_fingerprint(fingerprint)
         return (
             (match.response, fingerprint)
-            if match
-            and match.response
-            not in (
-                RESPONSE_ALLOW_ONETIME,
-                RESPONSE_DENY_ONETIME,
-            )
+            if (match and not match.response.is_onetime())
             else (None, fingerprint)
         )
 
@@ -282,12 +277,7 @@ class _ConnectToFolderPolicy(object):
         for fingerprint, decision in matrix.items():
             if tpl % fingerprint in existing_policy_files:
                 existing_policy_files.remove(tpl % fingerprint)
-            action = {
-                RESPONSE_ALLOW_ONETIME: self.grant_for,
-                RESPONSE_ALLOW_ALWAYS: self.grant_for,
-                RESPONSE_DENY_ONETIME: self.revoke_for,
-                RESPONSE_DENY_ALWAYS: self.revoke_for,
-            }[decision.response]
+            action = self.grant_for if decision.response.is_allow() else self.revoke_for
             action(decision.source, decision.target, fingerprint)
         for p in existing_policy_files:
             logger.info("Removing %s", p)
