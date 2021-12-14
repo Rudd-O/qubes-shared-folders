@@ -54,10 +54,6 @@ RESPONSES: Dict[str, Response] = dict(
 logger = logging.getLogger(__name__)
 
 
-def setup_logging() -> None:
-    logging.basicConfig(level=logging.INFO if os.getenv("DEBUG") else logging.WARNING)
-
-
 def contains(needle: str, haystack: str) -> bool:
     """Check if the needle path is contained in the haystack path."""
     needle = os.path.abspath(needle)

@@ -14,7 +14,6 @@ from sharedfolders import (
     DecisionMatrix,
     base_to_str,
     check_target_is_dom0,
-    setup_logging,
     Response,
 )
 
@@ -23,6 +22,10 @@ PATH_MAX = 4096
 VM_NAME_MAX = 64
 # from qubes.vm package in dom0
 VM_REGEX = "^[a-zA-Z][a-zA-Z0-9_-]*$"
+
+
+def setup_logging() -> None:
+    logging.basicConfig(level=logging.INFO if os.getenv("DEBUG") else logging.WARNING)
 
 
 def error(message: str, exitstatus: int = 4) -> int:
