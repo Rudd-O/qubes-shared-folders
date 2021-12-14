@@ -1,6 +1,7 @@
 Things I would love to get addressed (of course, other suggestions and improvements welcome):
 
 * Add throttling for authorization dialog so VMs can't pop a thousand of them
+* Use type annotations and mypy to ensure quality
 * Add serialized locking to reads and modifications of the policy database
 * Add a manager UI to control shared folder authorizations (folder share manager)
 * Persistent notification on tray that indicates a specific folder is currently exported to a certain qube
