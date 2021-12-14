@@ -10,7 +10,6 @@ import subprocess
 import sys
 
 from sharedfolders import (
-    RESPONSE_DENY_PREFIX,
     RESPONSES,
     DecisionMatrix,
     base_to_str,
@@ -130,7 +129,7 @@ def AuthorizeFolderAccess() -> int:
             response,
             fingerprint,
         )
-        if response.startswith(RESPONSE_DENY_PREFIX):
+        if response.is_deny():
             return deny()
     else:
         logger.info(

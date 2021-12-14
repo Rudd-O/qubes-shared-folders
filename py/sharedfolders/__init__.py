@@ -25,6 +25,12 @@ class Response(object):
     def startswith(self, prefix: str) -> bool:
         return self.name.startswith(prefix)
 
+    def is_allow(self) -> bool:
+        return self.name.startswith("ALLOW")
+
+    def is_deny(self) -> bool:
+        return self.name.startswith("DENY")
+
 
 RESPONSE_ALLOW_ONETIME = Response("ALLOW_ONETIME")
 RESPONSE_DENY_ONETIME = Response("DENY_ONETIME")
@@ -43,8 +49,6 @@ RESPONSES: Dict[str, Response] = dict(
         )
     ]
 )
-RESPONSE_ALLOW_PREFIX = "ALLOW"
-RESPONSE_DENY_PREFIX = "DENY"
 
 
 logger = logging.getLogger(__name__)
@@ -187,7 +191,7 @@ class DecisionMatrix(Dict[str, Decision]):
             for fingerprint, match in reversed(
                 sorted(matches, key=lambda m: len(m[1].folder))
             ):
-                if match.response.startswith(RESPONSE_ALLOW_PREFIX):
+                if match.response.is_allow():
                     break
             return match, fingerprint
         fingerprint = fingerprint_decision(source, target, folder)
