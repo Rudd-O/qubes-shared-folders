@@ -5,6 +5,7 @@ import errno
 import getpass
 import logging
 import os
+import re
 import subprocess
 import sys
 
@@ -13,14 +14,16 @@ from sharedfolders import (
     RESPONSES,
     DecisionMatrix,
     base_to_str,
-    valid_vm_name,
-    valid_path,
-    PATH_MAX,
-    VM_NAME_MAX,
     check_target_is_dom0,
     setup_logging,
     Response,
 )
+
+
+PATH_MAX = 4096
+VM_NAME_MAX = 64
+# from qubes.vm package in dom0
+VM_REGEX = "^[a-zA-Z][a-zA-Z0-9_-]*$"
 
 
 def error(message: str, exitstatus: int = 4) -> int:
@@ -35,6 +38,23 @@ def reject(message: str) -> int:
 def deny() -> int:
     print("Request refused", file=sys.stderr)
     return errno.EACCES
+
+
+def valid_vm_name(target: str) -> bool:
+    if not target:
+        raise ValueError(target)
+    if re.match(VM_REGEX, target) is None:
+        raise ValueError(target)
+    vm_list = subprocess.check_output(
+        ["qvm-ls", "--raw-list"], universal_newlines=True
+    ).splitlines()
+    if "dom0" in vm_list:
+        vm_list.remove("dom0")
+    return target in vm_list
+
+
+def valid_path(folder: str) -> bool:
+    return len(folder) < PATH_MAX and os.path.abspath(folder) == folder
 
 
 def ask_for_authorization(source: str, target: str, folder: str) -> Response:

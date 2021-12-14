@@ -7,7 +7,6 @@ import hashlib
 import json
 import logging
 import os
-import re
 import subprocess
 import sys
 from typing import Literal, Optional, Tuple, Dict, TypeVar, Type, Any
@@ -46,10 +45,6 @@ RESPONSES: Dict[str, Response] = dict(
 )
 RESPONSE_ALLOW_PREFIX = "ALLOW"
 RESPONSE_DENY_PREFIX = "DENY"
-PATH_MAX = 4096
-VM_NAME_MAX = 64
-# from qubes.vm package in dom0
-VM_REGEX = "^[a-zA-Z][a-zA-Z0-9_-]*$"
 
 
 logger = logging.getLogger(__name__)
@@ -87,27 +82,6 @@ def check_target_is_dom0() -> bool:
 def base_to_str(binarydata: bytes) -> str:
     data = base64.b64decode(binarydata)
     return data.decode("utf-8")
-
-
-def is_disp(vm: str) -> bool:
-    return bool(re.match("^disp[0-9]+$", vm))
-
-
-def valid_vm_name(target: str) -> bool:
-    if not target:
-        raise ValueError(target)
-    if re.match(VM_REGEX, target) is None:
-        raise ValueError(target)
-    vm_list = subprocess.check_output(
-        ["qvm-ls", "--raw-list"], universal_newlines=True
-    ).splitlines()
-    if "dom0" in vm_list:
-        vm_list.remove("dom0")
-    return target in vm_list
-
-
-def valid_path(folder: str) -> bool:
-    return len(folder) < PATH_MAX and os.path.abspath(folder) == folder
 
 
 def fingerprint_decision(source: str, target: str, folder: str) -> str:

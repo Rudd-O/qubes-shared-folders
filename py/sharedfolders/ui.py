@@ -2,6 +2,7 @@
 
 
 import os
+import re
 from typing import Any
 
 import gi  # type: ignore
@@ -15,7 +16,6 @@ gi.require_version("Notify", "0.7")
 from gi.repository import Gtk  # type: ignore
 
 from sharedfolders import (
-    is_disp,
     RESPONSE_ALLOW_ALWAYS,
     RESPONSE_ALLOW_ONETIME,
     RESPONSE_DENY_ALWAYS,
@@ -23,6 +23,10 @@ from sharedfolders import (
     RESPONSE_BLOCK,
     Response,
 )
+
+
+def is_disp(vm: str) -> bool:
+    return bool(re.match("^disp[0-9]+$", vm))
 
 
 def search_for_ui_file(file: str) -> str:
