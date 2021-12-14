@@ -10,7 +10,6 @@ import subprocess
 import sys
 
 from sharedfolders import (
-    RESPONSES,
     DecisionMatrix,
     base_to_str,
     check_target_is_dom0,
@@ -69,9 +68,9 @@ def ask_for_authorization(source: str, target: str, folder: str) -> Response:
     env = dict((x, y) for x, y in os.environ.items())
     if not env.get("DISPLAY"):
         env["DISPLAY"] = ":0"
-    return RESPONSES[
+    return Response.from_string(
         subprocess.check_output(cmd, env=env, universal_newlines=True).strip()
-    ]
+    )
 
 
 def AuthorizeFolderAccess() -> int:

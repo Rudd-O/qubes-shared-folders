@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from __future__ import annotations
+
 import base64
 import errno
 import glob
@@ -22,14 +24,25 @@ class Response(object):
     def __repr__(self) -> str:
         return "<Response " + self.name + " %s>" % id(self)
 
-    def startswith(self, prefix: str) -> bool:
-        return self.name.startswith(prefix)
-
     def is_allow(self) -> bool:
         return self.name.startswith("ALLOW")
 
     def is_deny(self) -> bool:
         return self.name.startswith("DENY")
+
+    @staticmethod
+    def from_string(string: str) -> Response:
+        r = {
+            "ALLOW_ONETIME": RESPONSE_ALLOW_ONETIME,
+            "DENY_ONETIME": RESPONSE_DENY_ONETIME,
+            "ALLOW_ALWAYS": RESPONSE_ALLOW_ALWAYS,
+            "DENY_ALWAYS": RESPONSE_DENY_ALWAYS,
+            "BLOCK": RESPONSE_BLOCK,
+        }
+        try:
+            return r[string]
+        except KeyError:
+            raise ValueError(string)
 
 
 RESPONSE_ALLOW_ONETIME = Response("ALLOW_ONETIME")
@@ -37,18 +50,6 @@ RESPONSE_DENY_ONETIME = Response("DENY_ONETIME")
 RESPONSE_ALLOW_ALWAYS = Response("ALLOW_ALWAYS")
 RESPONSE_DENY_ALWAYS = Response("DENY_ALWAYS")
 RESPONSE_BLOCK = Response("BLOCK")
-RESPONSES: Dict[str, Response] = dict(
-    [
-        (str(x), x)
-        for x in (
-            RESPONSE_ALLOW_ONETIME,
-            RESPONSE_DENY_ONETIME,
-            RESPONSE_ALLOW_ALWAYS,
-            RESPONSE_DENY_ALWAYS,
-            RESPONSE_BLOCK,
-        )
-    ]
-)
 
 
 logger = logging.getLogger(__name__)
@@ -105,28 +106,24 @@ class Decision(object):
         self.source = source
         self.target = target
         self.folder = folder
-        assert response in RESPONSES.values()
         self.response = response
 
     def toJSON(self) -> str:
         return json.dumps(self.__dict__)
 
 
-DMT = TypeVar("DMT", bound="DecisionMatrix")
-
-
 class DecisionMatrix(Dict[str, Decision]):
     POLICY_DB = "/etc/qubes/shared-folders/policy.db"
 
     @classmethod
-    def load(klass: Type[DMT]) -> DMT:
+    def load(klass: Type[DecisionMatrix]) -> DecisionMatrix:
         def hook(obj: Dict[Any, Any]) -> Any:
             if "folder" in obj:
                 return Decision(
                     source=obj["source"],
                     target=obj["target"],
                     folder=obj["folder"],
-                    response=RESPONSES[obj["response"]],
+                    response=Response.from_string(obj["response"]),
                 )
             else:
                 return DecisionMatrix(obj)
