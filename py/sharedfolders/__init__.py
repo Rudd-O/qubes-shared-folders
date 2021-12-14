@@ -107,7 +107,7 @@ def is_disp(vm: str) -> bool:
     return bool(re.match("^disp[0-9]+$", vm))
 
 
-def validate_target_vm(target: str) -> bool:
+def valid_vm_name(target: str) -> bool:
     if not target:
         raise ValueError(target)
     if re.match(VM_REGEX, target) is None:
@@ -120,7 +120,7 @@ def validate_target_vm(target: str) -> bool:
     return target in vm_list
 
 
-def validate_path(folder: str) -> bool:
+def valid_path(folder: str) -> bool:
     return len(folder) < PATH_MAX and os.path.abspath(folder) == folder
 
 

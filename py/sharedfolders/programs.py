@@ -16,8 +16,8 @@ from sharedfolders import (
     deny,
     reject,
     error,
-    validate_target_vm,
-    validate_path,
+    valid_vm_name,
+    valid_path,
     PATH_MAX,
     VM_NAME_MAX,
     check_target_is_dom0,
@@ -71,7 +71,7 @@ def AuthorizeFolderAccess() -> int:
 
     try:
         target = base_to_str(base64_target)
-        if not validate_target_vm(target):
+        if not valid_vm_name(target):
             return deny()
     except Exception:
         return reject("the target VM is malformed or has invalid characters")
@@ -80,7 +80,7 @@ def AuthorizeFolderAccess() -> int:
 
     try:
         folder = base_to_str(base64_folder)
-        if not validate_path(folder):
+        if not valid_path(folder):
             raise ValueError(folder)
     except Exception:
         return reject(
@@ -145,7 +145,7 @@ def QueryFolderForAuthorization() -> int:
     requested_folder_encoded = sys.stdin.buffer.read()
     try:
         requested_folder = base_to_str(requested_folder_encoded)
-        if not validate_path(requested_folder):
+        if not valid_path(requested_folder):
             raise ValueError(requested_folder)
     except Exception:
         return reject(
