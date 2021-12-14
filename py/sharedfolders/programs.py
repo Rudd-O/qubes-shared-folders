@@ -10,70 +10,86 @@ import sys
 
 from sharedfolders import (
     RESPONSE_DENY_PREFIX,
-    lookup_decision_response,
-    ask_for_authorization,
-    process_decision_output,
+    RESPONSES,
+    DecisionMatrix,
     base_to_str,
     deny,
     reject,
-    fatal,
+    error,
     validate_target_vm,
     validate_path,
     PATH_MAX,
     VM_NAME_MAX,
     check_target_is_dom0,
     setup_logging,
-    lookup_decision_folder,
+    Response,
 )
 
 
-DENIED = 126
+def ask_for_authorization(source: str, target: str, folder: str) -> Response:
+    cmd = [
+        "/usr/libexec/qvm-authorize-folder-access",
+        source,
+        target,
+        folder,
+    ]
+    env = dict((x, y) for x, y in os.environ.items())
+    if not env.get("DISPLAY"):
+        env["DISPLAY"] = ":0"
+    return RESPONSES[
+        subprocess.check_output(cmd, env=env, universal_newlines=True).strip()
+    ]
 
 
-def AuthorizeFolderAccess():
+def AuthorizeFolderAccess() -> int:
     """AuthorizeFolderAccess runs in dom0 and is used by client
     qubes to request permission to mount other qubes' folders."""
     logger = logging.getLogger("AuthorizeFolderAccess")
     setup_logging()
 
-    check_target_is_dom0() or fatal(
-        "fatal: unexpected targetfor this RPC (target type %s, target %s, target keyword %s)"
-        % (
-            os.getenv("QREXEC_REQUESTED_TARGET_TYPE"),
-            os.getenv("QREXEC_REQUESTED_TARGET"),
-            os.getenv("QREXEC_REQUESTED_TARGET_KEYWORD"),
-        ),
-        errno.EINVAL,
-    )
+    if not check_target_is_dom0():
+        return error(
+            "unexpected targetfor this RPC (target type %s, target %s, target keyword %s)"
+            % (
+                os.getenv("QREXEC_REQUESTED_TARGET_TYPE"),
+                os.getenv("QREXEC_REQUESTED_TARGET"),
+                os.getenv("QREXEC_REQUESTED_TARGET_KEYWORD"),
+            ),
+            errno.EINVAL,
+        )
 
     source = os.getenv("QREXEC_REMOTE_DOMAIN")
     if not source:
-        reject("no source VM")
+        return reject("no source VM")
 
     arguments = sys.stdin.buffer.read(int(PATH_MAX * 130 / 100 + VM_NAME_MAX))
     sys.stdin.close()
     try:
         base64_target, base64_folder = arguments.split(b"\n")[0:2]
     except (ValueError, IndexError):
-        reject("the arguments were malformed")
+        return reject("the arguments were malformed")
 
     try:
         target = base_to_str(base64_target)
-        validate_target_vm(target)
+        if not validate_target_vm(target):
+            return deny()
     except Exception:
-        reject("the target VM is malformed or has invalid characters")
+        return reject("the target VM is malformed or has invalid characters")
     if source == target:
-        reject("cannot request file share to and from the same VM")
+        return reject("cannot request file share to and from the same VM")
 
     try:
         folder = base_to_str(base64_folder)
-        validate_path(folder)
+        if not validate_path(folder):
+            raise ValueError(folder)
     except Exception:
-        reject(
+        return reject(
             "the requested folder is malformed, is not a proper absolute path, or has invalid characters"
         )
 
-    response, fingerprint = lookup_decision_response(source, target, folder)
+    response, fingerprint = DecisionMatrix.load().lookup_prior_authorization(
+        source, target, folder
+    )
     if response:
         logger.info(
             "VM %s has a response already registered for %s:%s: %s (fingerprint: %s)",
@@ -83,41 +99,45 @@ def AuthorizeFolderAccess():
             response,
             fingerprint,
         )
+        if response.startswith(RESPONSE_DENY_PREFIX):
+            return deny()
     else:
         logger.info(
             "VM %s has yet to receive a response for %s:%s", source, target, folder
         )
         # User has never been asked.
-        response = ask_for_authorization(source, target, folder)
-        fingerprint = process_decision_output(source, target, folder, response)
-        logger.info("Response: %s; fingerprint: %s", response, fingerprint)
-    if response.startswith(RESPONSE_DENY_PREFIX):
-        deny()
+        new_response = ask_for_authorization(source, target, folder)
+        fingerprint = DecisionMatrix.load().process_authorization_request(
+            source, target, folder, new_response
+        )
+        logger.info("Response: %s; fingerprint: %s", new_response, fingerprint)
 
     sys.stdout.write(fingerprint)
     sys.stdout.close()
+    return 0
 
 
-def QueryFolderForAuthorization():
+def QueryFolderForAuthorization() -> int:
     """QueryFolderForAuthorization runs in dom0 and is called by server
     qubes to verify that a client qube has been authorized to get access
     to a folder."""
     logger = logging.getLogger("QueryFolderForAuthorization")
     setup_logging()
 
-    check_target_is_dom0() or fatal(
-        "fatal: unexpected targetfor this RPC (target type %s, target %s, target keyword %s)"
-        % (
-            os.getenv("QREXEC_REQUESTED_TARGET_TYPE"),
-            os.getenv("QREXEC_REQUESTED_TARGET"),
-            os.getenv("QREXEC_REQUESTED_TARGET_KEYWORD"),
-        ),
-        errno.EINVAL,
-    )
+    if not check_target_is_dom0():
+        return error(
+            "unexpected targetfor this RPC (target type %s, target %s, target keyword %s)"
+            % (
+                os.getenv("QREXEC_REQUESTED_TARGET_TYPE"),
+                os.getenv("QREXEC_REQUESTED_TARGET"),
+                os.getenv("QREXEC_REQUESTED_TARGET_KEYWORD"),
+            ),
+            errno.EINVAL,
+        )
 
     fingerprint = os.getenv("QREXEC_SERVICE_ARGUMENT")
     if not fingerprint:
-        reject("this RPC call requires an argument")
+        return reject("this RPC call requires an argument")
 
     # Read the requested folder from the caller.  The caller is NOT
     # the VM which wants to mount the folder -- it is rather the
@@ -125,9 +145,10 @@ def QueryFolderForAuthorization():
     requested_folder_encoded = sys.stdin.buffer.read()
     try:
         requested_folder = base_to_str(requested_folder_encoded)
-        validate_path(requested_folder)
+        if not validate_path(requested_folder):
+            raise ValueError(requested_folder)
     except Exception:
-        reject(
+        return reject(
             "the requested folder is malformed, is not a proper absolute path, or has invalid characters"
         )
 
@@ -139,38 +160,39 @@ def QueryFolderForAuthorization():
         fingerprint,
         requested_folder,
     )
-    folder = lookup_decision_folder(fingerprint, requested_folder)
+    folder = DecisionMatrix.load().lookup_decision_folder(fingerprint, requested_folder)
     if not folder:
-        deny()
+        return deny()
 
     # Send the requested folder back to the client.
     print(requested_folder)
+    return 0
 
 
-def QvmMountFolder():
+def QvmMountFolder() -> int:
     """QvmMountFolder runs in the qube that wants to mount a folder from
     another qube."""
     logger = logging.getLogger("QvmMountFolder")
     setup_logging()
 
-    def usage(fatal=""):
-        if fatal:
-            print("fatal:", fatal, file=sys.stderr)
+    def usage(error: str = "") -> int:
+        if error:
+            print("error:", error, file=sys.stderr)
         print(
             """usage:
-    
-    qvm-mount-folder <VM> <folder from VM> <mountpoint>""",
-            file=sys.stderr if fatal else sys.stdout,
+
+"qvm-mount-folder" <VM> <folder from VM> <mountpoint>""",
+            file=sys.stderr if error else sys.stdout,
         )
-        sys.exit(os.EX_USAGE)
+        return os.EX_USAGE
 
     try:
         vm, source, target = sys.argv[1:4]
     except (IndexError, ValueError):
-        usage("invalid arguments")
+        return usage("invalid arguments")
 
     if not os.path.isdir(target):
-        fatal("%s does not exist or is not a directory" % target, errno.ENOENT)
+        error("%s does not exist or is not a directory" % target, errno.ENOENT)
 
     vm_encoded = base64.standard_b64encode(vm.encode("utf-8"))
     folder_encoded = base64.standard_b64encode(source.encode("utf-8"))
@@ -188,6 +210,8 @@ def QvmMountFolder():
         bufsize=0,
         close_fds=True,
     )
+    assert p.stdin
+    assert p.stdout
     p.stdin.write(vm_encoded + b"\n")
     p.stdin.write(folder_encoded + b"\n")
     p.stdin.close()
@@ -201,7 +225,7 @@ def QvmMountFolder():
         elif ret == errno.EINVAL:
             print("Invalid parameters", file=sys.stderr)
         else:
-            print("Unknown fatal", file=sys.stderr)
+            print("Unknown error", file=sys.stderr)
         sys.exit(ret)
 
     f1_read, f1_write = os.pipe2(0)
@@ -249,20 +273,22 @@ def QvmMountFolder():
         # folder does not exist
         ex = p.wait()
         if ex == errno.ENOENT:
-            fatal("directory %s does not exist in qube %s" % (source, vm), errno.ENOENT)
+            return error(
+                "directory %s does not exist in qube %s" % (source, vm), errno.ENOENT
+            )
         elif ex == errno.EACCES:
-            fatal(
+            return error(
                 "qube %s has denied the mount request for directory %s" % (vm, source),
                 errno.EACCES,
             )
         elif ex == 126:
-            fatal(
+            return error(
                 "qrexec policy has denied the mount request to %s for directory %s"
                 % (vm, source),
                 126,
             )
         else:
-            fatal("unknown exit status %s" % ex, ex)
+            return error("unknown exit status %s" % ex, ex)
     else:
         p.kill()
         assert 0, "not reached: %r" % response
@@ -289,4 +315,4 @@ def QvmMountFolder():
     stdout_for_read.close()
     stdin_for_write.close()
 
-    sys.exit(p2.wait())
+    return p2.wait()

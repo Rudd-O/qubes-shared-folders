@@ -48,4 +48,6 @@ black:
 	grep "^#!/usr/bin/python3" -r . | cut -d : -f 1 | sort | uniq | xargs -n1 black
 
 test:
-	cd py/sharedfolders && export PYTHONPATH="\$PWD"/.. && python3 -m unittest -v
+	cd py && export PYTHONPATH="$$PWD" && mypy --strict -p sharedfolders
+	cd py/sharedfolders && export PYTHONPATH="$$PWD"/.. && python3 -m unittest -v
+	
