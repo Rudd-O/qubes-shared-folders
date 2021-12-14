@@ -57,13 +57,21 @@ class AuthorizationDialog(object):
 
     def block_selected(self, radio):
         if radio.get_active():
-            self.prior_remember_active = self.builder.get_object("option_remember").get_active()
-            self.prior_remember_sensitive = self.builder.get_object("option_remember").get_sensitive()
+            self.prior_remember_active = self.builder.get_object(
+                "option_remember"
+            ).get_active()
+            self.prior_remember_sensitive = self.builder.get_object(
+                "option_remember"
+            ).get_sensitive()
             self.builder.get_object("option_remember").set_active(True)
             self.builder.get_object("option_remember").set_sensitive(False)
         else:
-            self.builder.get_object("option_remember").set_active(self.prior_remember_active)
-            self.builder.get_object("option_remember").set_sensitive(self.prior_remember_sensitive)
+            self.builder.get_object("option_remember").set_active(
+                self.prior_remember_active
+            )
+            self.builder.get_object("option_remember").set_sensitive(
+                self.prior_remember_sensitive
+            )
 
     def show_all(self):
         self.dialog.show_all()

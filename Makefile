@@ -6,7 +6,7 @@ DESTDIR=
 PROGNAME=qubes-shared-folders
 SITEPACKAGES=$(shell python3 -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")
 
-.PHONY: clean install-client install-dom0 black test
+.PHONY: clean install-client install-dom0 install-py black test
 
 clean:
 	find -name '*~' -print0 | xargs -0 rm -fv
@@ -22,11 +22,14 @@ rpm: dist
 srpm: dist
 	T=`mktemp -d` && rpmbuild --define "_topdir $$T" -ts $(PROGNAME)-`awk '/^Version:/ {print $$2}' $(PROGNAME).spec`.tar.gz || { rm -rf "$$T"; exit 1; } && mv "$$T"/SRPMS/* . || { rm -rf "$$T"; exit 1; } && rm -rf "$$T"
 
-install-client:
+install-py:
+	install -Dm 644 py/sharedfolders/*.py -t $(DESTDIR)/$(SITEPACKAGES)/sharedfolders/
+
+install-client: install-py
 	install -Dm 755 bin/qvm-mount-folder -t $(DESTDIR)/$(BINDIR)/
 	install -Dm 755 etc/qubes-rpc/ruddo.ConnectToFolder -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/
 
-install-dom0:
+install-dom0: install-py
 	install -Dm 664 etc/qubes-rpc/policy/ruddo.ConnectToFolder -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/
 	install -Dm 664 etc/qubes-rpc/policy/ruddo.AuthorizeFolderAccess -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/
 	install -Dm 664 etc/qubes-rpc/policy/ruddo.QueryFolderAuthorization -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/
@@ -37,7 +40,6 @@ install-dom0:
 	install -Dm 755 etc/qubes-rpc/ruddo.QueryFolderAuthorization -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/
 	install -Dm 755 libexec/qvm-authorize-folder-access -t $(DESTDIR)/$(LIBEXECDIR)/
 	install -Dm 644 ui/*.ui -t $(DESTDIR)/$(DATADIR)/$(PROGNAME)/ui/
-	install -Dm 644 py/sharedfolders/*.py -t $(DESTDIR)/$(SITEPACKAGES)/sharedfolders/
 	mkdir -p $(DESTDIR)/$(SYSCONFDIR)/qubes/shared-folders
 	chmod 2775 $(DESTDIR)/$(SYSCONFDIR)/qubes/shared-folders
 	getent group qubes >/dev/null 2>&1 || exit 0 ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes/shared-folders

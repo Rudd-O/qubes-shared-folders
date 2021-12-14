@@ -64,6 +64,7 @@ fi
 %files
 %attr(0755, root, root) %{_bindir}/qvm-mount-folder
 %attr(0755, root, root) %{_sysconfdir}/qubes-rpc/ruddo.ConnectToFolder
+%attr(0644, root, root) %{python3_sitearch}/sharedfolders/*
 %doc README.md TODO.md doc
 
 %files dom0
@@ -77,6 +78,7 @@ fi
 %attr(0755, root, root) %{_sysconfdir}/qubes-rpc/ruddo.QueryFolderAuthorization
 %attr(0755, root, root) %{_libexecdir}/qvm-authorize-folder-access
 %attr(0644, root, root) %{python3_sitearch}/sharedfolders/*
+%doc README.md TODO.md doc
 
 %changelog
 * Sat Dec 11 2021 Manuel Amador (Rudd-O) <rudd-o@rudd-o.com>

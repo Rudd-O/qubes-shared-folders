@@ -1,15 +1,15 @@
 #!/usr/bin/python3
 
+import base64
+import errno
 import glob
 import hashlib
 import json
 import logging
 import os
+import re
 import subprocess
 import sys
-import errno
-import base64
-import re
 
 
 RESPONSE_ALLOW_ONETIME = "ALLOW_ONETIME"
@@ -44,18 +44,37 @@ def contains(needle, haystack):
     return False
 
 
+def setup_logging():
+    logging.basicConfig(level=logging.INFO if os.getenv("DEBUG") else logging.WARNING)
+
+
+def check_target_is_dom0():
+    return (
+        os.getenv("QREXEC_REQUESTED_TARGET_TYPE") == "name"
+        and os.getenv("QREXEC_REQUESTED_TARGET") == "dom0"
+    ) or (
+        os.getenv("QREXEC_REQUESTED_TARGET_TYPE") == "keyword"
+        and os.getenv("QREXEC_REQUESTED_TARGET_KEYWORD") == "adminvm"
+    )
+
+
 def base_to_str(binarydata):
     data = base64.b64decode(binarydata)
     return data.decode("utf-8")
 
 
+def fatal(message, exitstatus=4):
+    print("fatal:", message, file=sys.stderr)
+    sys.exit(exitstatus)
+
+
+def reject(message):
+    fatal(message, errno.EINVAL)
+
+
 def deny():
     print("Request refused", file=sys.stderr)
     sys.exit(errno.EACCES)
-
-
-def reject():
-    sys.exit(errno.EINVAL)
 
 
 def is_disp(vm):
@@ -95,8 +114,12 @@ def fingerprint_decision(source, target, folder):
     return fingerprint.hexdigest()[:32]
 
 
+def ctf_policy(fingerprint):
+    return "/etc/qubes-rpc/policy/ruddo.ConnectToFolder+%s" % fingerprint
+
+
 def grant_for(source, target, fingerprint):
-    fn = "/etc/qubes-rpc/policy/ruddo.ConnectToFolder+%s" % fingerprint
+    fn = ctf_policy(fingerprint)
     if os.path.isfile(fn):
         return
     logger.info("Creating %s", fn)
@@ -107,8 +130,9 @@ def grant_for(source, target, fingerprint):
 
 
 def revoke_for(source, target, fingerprint):
+    fn = ctf_policy(fingerprint)
     try:
-        os.unlink("/etc/qubes-rpc/policy/ruddo.ConnectToFolder+%s" % fingerprint)
+        os.unlink(fn)
         logger.info("Removing %s", fn)
     except FileNotFoundError:
         pass
