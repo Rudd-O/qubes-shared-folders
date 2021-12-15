@@ -230,8 +230,11 @@ class DecisionMatrix(Dict[str, Decision]):
 
 
 class _ConnectToFolderPolicy(object):
+
+    FNTPL = "/etc/qubes-rpc/policy/ruddo.ConnectToFolder+%s"
+
     def ctf_policy(self, fingerprint: str) -> str:
-        return "/etc/qubes-rpc/policy/ruddo.ConnectToFolder+%s" % fingerprint
+        return self.FNTPL % fingerprint
 
     def grant_for(self, source: str, target: str, fingerprint: str) -> None:
         fn = self.ctf_policy(fingerprint)
@@ -254,11 +257,10 @@ class _ConnectToFolderPolicy(object):
             pass
 
     def apply_policy_changes_from(self, matrix: DecisionMatrix) -> None:
-        tpl = "/etc/qubes-rpc/policy/ruddo.ConnectToFolder+%s"
-        existing_policy_files = glob.glob(tpl % "*")
+        existing_policy_files = glob.glob(self.FNTPL % "*")
         for fingerprint, decision in matrix.items():
-            if tpl % fingerprint in existing_policy_files:
-                existing_policy_files.remove(tpl % fingerprint)
+            if self.FNTPL % fingerprint in existing_policy_files:
+                existing_policy_files.remove(self.FNTPL % fingerprint)
             action = self.grant_for if decision.response.is_allow() else self.revoke_for
             action(decision.source, decision.target, fingerprint)
         for p in existing_policy_files:
