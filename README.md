@@ -52,7 +52,7 @@ all subfolders (modulo file permissions on the shared folder) and,
 once granted, access lasts until the `server` qube is shut off, or
 the `client` qube unmounts the shared folder.
 
-Authorize the access by confirming the name of the qube (`server` on
+Authorize the access by confirming the name of the qube (`server`) on
 the dialog and continuing.
 
 **Presto.**  You should be able to use a file manager, a terminal, or
