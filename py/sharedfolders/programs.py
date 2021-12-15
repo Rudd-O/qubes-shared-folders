@@ -11,8 +11,6 @@ import sys
 
 from sharedfolders import (
     DecisionMatrix,
-    base_to_str,
-    check_target_is_dom0,
     Response,
 )
 
@@ -54,8 +52,23 @@ def valid_vm_name(target: str) -> bool:
     return target in vm_list
 
 
+def check_target_is_dom0() -> bool:
+    return (
+        os.getenv("QREXEC_REQUESTED_TARGET_TYPE") == "name"
+        and os.getenv("QREXEC_REQUESTED_TARGET") == "dom0"
+    ) or (
+        os.getenv("QREXEC_REQUESTED_TARGET_TYPE") == "keyword"
+        and os.getenv("QREXEC_REQUESTED_TARGET_KEYWORD") == "adminvm"
+    )
+
+
 def valid_path(folder: str) -> bool:
     return len(folder) < PATH_MAX and os.path.abspath(folder) == folder
+
+
+def base_to_str(binarydata: bytes) -> str:
+    data = base64.b64decode(binarydata)
+    return data.decode("utf-8")
 
 
 def ask_for_authorization(source: str, target: str, folder: str) -> Response:

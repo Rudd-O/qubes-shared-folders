@@ -73,21 +73,6 @@ def contains(needle: str, haystack: str) -> bool:
     return False
 
 
-def check_target_is_dom0() -> bool:
-    return (
-        os.getenv("QREXEC_REQUESTED_TARGET_TYPE") == "name"
-        and os.getenv("QREXEC_REQUESTED_TARGET") == "dom0"
-    ) or (
-        os.getenv("QREXEC_REQUESTED_TARGET_TYPE") == "keyword"
-        and os.getenv("QREXEC_REQUESTED_TARGET_KEYWORD") == "adminvm"
-    )
-
-
-def base_to_str(binarydata: bytes) -> str:
-    data = base64.b64decode(binarydata)
-    return data.decode("utf-8")
-
-
 def fingerprint_decision(source: str, target: str, folder: str) -> str:
     fingerprint = hashlib.sha256()
     fingerprint.update(source.encode("utf-8"))
@@ -110,9 +95,6 @@ class Decision(object):
         self.target = target
         self.folder = folder
         self.response = response
-
-    def toJSON(self) -> str:
-        return json.dumps(self.__dict__)
 
 
 class DecisionMatrix(Dict[str, Decision]):
