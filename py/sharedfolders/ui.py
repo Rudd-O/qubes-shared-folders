@@ -16,11 +16,7 @@ gi.require_version("Notify", "0.7")
 from gi.repository import Gtk  # type: ignore
 
 from sharedfolders import (
-    RESPONSE_ALLOW_ALWAYS,
-    RESPONSE_ALLOW_ONETIME,
-    RESPONSE_DENY_ALWAYS,
-    RESPONSE_DENY_ONETIME,
-    RESPONSE_BLOCK,
+    RESPONSES,
     Response,
 )
 
@@ -41,7 +37,7 @@ def search_for_ui_file(file: str) -> str:
 
 class AuthorizationDialog(object):
 
-    response: Response = RESPONSE_DENY_ONETIME
+    response: Response = RESPONSES.DENY_ONETIME
 
     def __init__(self, client: str, server: str, folder: str):
         builder = Gtk.Builder()
@@ -94,19 +90,19 @@ class AuthorizationDialog(object):
 
     def collect_response(self) -> None:
         table = [
-            ("option_deny", RESPONSE_DENY_ONETIME),
-            ("option_allow", RESPONSE_ALLOW_ONETIME),
-            ("option_block", RESPONSE_BLOCK),
+            ("option_deny", RESPONSES.DENY_ONETIME),
+            ("option_allow", RESPONSES.ALLOW_ONETIME),
+            ("option_block", RESPONSES.BLOCK),
         ]
         for objn, resp in table:
             if self.builder.get_object(objn).get_active():
                 self.response = resp
-        if self.response is not RESPONSE_BLOCK:
+        if not self.response.is_block():
             if self.builder.get_object("option_remember").get_active():
-                if self.response is RESPONSE_ALLOW_ONETIME:
-                    self.response = RESPONSE_ALLOW_ALWAYS
-                elif self.response is RESPONSE_DENY_ONETIME:
-                    self.response = RESPONSE_DENY_ALWAYS
+                if self.response is RESPONSES.ALLOW_ONETIME:
+                    self.response = RESPONSES.ALLOW_ALWAYS
+                elif self.response is RESPONSES.DENY_ONETIME:
+                    self.response = RESPONSES.DENY_ALWAYS
 
     def dialog_response_cb(self, unused_dialog: Any, response: int) -> None:
         if response == 1:

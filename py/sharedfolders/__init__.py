@@ -37,23 +37,19 @@ class Response(object):
     def from_string(string: str) -> Response:
         global RESPONSES
         try:
-            return RESPONSES[string]
+            r = RESPONSES.__dict__[string]
+            assert isinstance(r, Response)
+            return r
         except KeyError:
             raise ValueError(string)
 
 
-RESPONSE_ALLOW_ONETIME = Response("ALLOW_ONETIME")
-RESPONSE_DENY_ONETIME = Response("DENY_ONETIME")
-RESPONSE_ALLOW_ALWAYS = Response("ALLOW_ALWAYS")
-RESPONSE_DENY_ALWAYS = Response("DENY_ALWAYS")
-RESPONSE_BLOCK = Response("BLOCK")
-RESPONSES = {
-    str(RESPONSE_ALLOW_ONETIME): RESPONSE_ALLOW_ONETIME,
-    str(RESPONSE_DENY_ONETIME): RESPONSE_DENY_ONETIME,
-    str(RESPONSE_ALLOW_ALWAYS): RESPONSE_ALLOW_ALWAYS,
-    str(RESPONSE_DENY_ALWAYS): RESPONSE_DENY_ALWAYS,
-    str(RESPONSE_BLOCK): RESPONSE_BLOCK,
-}
+class RESPONSES(object):
+    ALLOW_ONETIME = Response("ALLOW_ONETIME")
+    DENY_ONETIME = Response("DENY_ONETIME")
+    ALLOW_ALWAYS = Response("ALLOW_ALWAYS")
+    DENY_ALWAYS = Response("DENY_ALWAYS")
+    BLOCK = Response("BLOCK")
 
 
 logger = logging.getLogger(__name__)
@@ -199,7 +195,7 @@ class DecisionMatrix(Dict[str, Decision]):
             # The user means to block ALL, so we transform this into
             # a complete block for the machine, by blocking the root
             # directory, which means to block absolutely everything.
-            response = RESPONSE_DENY_ALWAYS
+            response = RESPONSES.DENY_ALWAYS
             folder = "/"
         fingerprint = fingerprint_decision(source, target, folder)
         decision = Decision(source, target, folder, response)

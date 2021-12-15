@@ -18,25 +18,25 @@ matrix = sharedfolders.DecisionMatrix(
             "one",
             "two",
             "/home/user",
-            sharedfolders.RESPONSE_ALLOW_ALWAYS,
+            sharedfolders.RESPONSES.ALLOW_ALWAYS,
         ),
         "fprint2": sharedfolders.Decision(
             "one",
             "two",
             "/home",
-            sharedfolders.RESPONSE_DENY_ALWAYS,
+            sharedfolders.RESPONSES.DENY_ALWAYS,
         ),
         "fprint3": sharedfolders.Decision(
             "one",
             "two",
             "/var",
-            sharedfolders.RESPONSE_ALLOW_ALWAYS,
+            sharedfolders.RESPONSES.ALLOW_ALWAYS,
         ),
         "fprint4": sharedfolders.Decision(
             "one",
             "two",
             "/var/lib",
-            sharedfolders.RESPONSE_DENY_ALWAYS,
+            sharedfolders.RESPONSES.DENY_ALWAYS,
         ),
     }
 )
@@ -51,7 +51,7 @@ class TestDecisions(unittest.TestCase):
         )
         assert (
             decision is not None
-            and decision.response == sharedfolders.RESPONSE_ALLOW_ALWAYS
+            and decision.response is sharedfolders.RESPONSES.ALLOW_ALWAYS
         ), decision
         assert fingerprint == "fprint"
 
@@ -68,7 +68,7 @@ class TestDecisions(unittest.TestCase):
         decision, fingerprint = matrix.lookup_decision(source, target, "/home")
         assert (
             decision is not None
-            and decision.response == sharedfolders.RESPONSE_DENY_ALWAYS
+            and decision.response is sharedfolders.RESPONSES.DENY_ALWAYS
         ), decision
         assert fingerprint == "fprint2"
 
@@ -78,7 +78,7 @@ class TestDecisions(unittest.TestCase):
         decision, fingerprint = matrix.lookup_decision(source, target, "/var")
         assert (
             decision is not None
-            and decision.response == sharedfolders.RESPONSE_ALLOW_ALWAYS
+            and decision.response is sharedfolders.RESPONSES.ALLOW_ALWAYS
         ), decision
         assert fingerprint == "fprint3"
 
@@ -88,7 +88,7 @@ class TestDecisions(unittest.TestCase):
         decision, fingerprint = matrix.lookup_decision(source, target, "/var/lib")
         assert (
             decision is not None
-            and decision.response == sharedfolders.RESPONSE_ALLOW_ALWAYS
+            and decision.response is sharedfolders.RESPONSES.ALLOW_ALWAYS
         ), decision
         assert fingerprint == "fprint3"
 
