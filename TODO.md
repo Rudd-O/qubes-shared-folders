@@ -1,6 +1,7 @@
 Things I would love to get addressed (of course, other suggestions and improvements welcome):
 
 * Add throttling for authorization dialog so VMs can't pop a thousand of them
+* Add locking between authorization dialog and folder share manager so that users cannot proceed with an open folder share request until the folder share manager is closed; alternatively, ensure that the folder share manager cannot save the changes done in the interim and forces the user to revert to what's stored on disk
 * Add serialized locking to reads and modifications of the policy database
 * Persistent notification on tray that indicates a specific folder is currently exported to a certain qube
 * UI for mount clients to configure certain mounts to be mounted upon start / list existing configured mountpoints and statuses and open file managers to these mountpoints
