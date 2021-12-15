@@ -72,6 +72,9 @@ class AuthorizationDialog(object):
         self.prior_remember_active = None
         self.prior_remember_sensitive = None
 
+    def open_folder_share_manager(self, *unused_args):
+        subprocess.call(["bash", "-c", "qvm-folder-share-manager & disown -h"])
+
     def block_selected(self, radio: Gtk.RadioButton) -> None:
         if radio.get_active():
             self.prior_remember_active = self.builder.get_object(
