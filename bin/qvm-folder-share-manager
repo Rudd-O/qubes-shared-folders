@@ -1,0 +1,6 @@
+#!/usr/bin/python3
+
+from sharedfolders.ui import FolderShareManager
+
+
+FolderShareManager().run()

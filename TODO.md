@@ -2,7 +2,6 @@ Things I would love to get addressed (of course, other suggestions and improveme
 
 * Add throttling for authorization dialog so VMs can't pop a thousand of them
 * Add serialized locking to reads and modifications of the policy database
-* Add a manager UI to control shared folder authorizations (folder share manager)
 * Persistent notification on tray that indicates a specific folder is currently exported to a certain qube
 * UI for mount clients to configure certain mounts to be mounted upon start / list existing configured mountpoints and statuses and open file managers to these mountpoints
 * Add a `mount.qvm` command so that the `mount` command can be used normally (figure out how to make it work as non-root, although that should not be very difficult)

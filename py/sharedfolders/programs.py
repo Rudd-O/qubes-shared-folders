@@ -9,10 +9,7 @@ import re
 import subprocess
 import sys
 
-from sharedfolders import (
-    DecisionMatrix,
-    Response,
-)
+from sharedfolders import DecisionMatrix, Response, get_vm_list
 
 
 PATH_MAX = 4096
@@ -44,11 +41,7 @@ def valid_vm_name(target: str) -> bool:
         raise ValueError(target)
     if re.match(VM_REGEX, target) is None:
         raise ValueError(target)
-    vm_list = subprocess.check_output(
-        ["qvm-ls", "--raw-list"], universal_newlines=True
-    ).splitlines()
-    if "dom0" in vm_list:
-        vm_list.remove("dom0")
+    vm_list = get_vm_list()
     return target in vm_list
 
 

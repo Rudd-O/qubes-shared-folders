@@ -17,6 +17,7 @@ Source0:        https://github.com/Rudd-O/%{name}/archive/{%version}.tar.gz#/%{n
 BuildRequires:  make
 BuildRequires:  python3
 BuildRequires:  python3-mock
+BuildRequires:  desktop-file-utils
 Requires:       bash
 Requires:       python3
 Requires:       qubes-core-agent-qrexec
@@ -55,6 +56,7 @@ done
 touch $RPM_BUILD_ROOT/%{_sysconfdir}/qubes/shared-folders/policy.db
 
 %check
+desktop-file-validate desktop/*.desktop
 make test
 if grep -r '@.*@' $RPM_BUILD_ROOT ; then
     echo "Check failed: files with AT identifiers appeared" >&2
@@ -69,6 +71,7 @@ fi
 
 %files dom0
 %attr(0644, root, root) %{_datadir}/%{name}/ui/*.ui
+%attr(0644, root, root) %{_datadir}/applications/*.desktop
 %config(noreplace) %attr(0664, root, qubes) %{_sysconfdir}/qubes-rpc/policy/ruddo.AuthorizeFolderAccess
 %config(noreplace) %attr(0664, root, qubes) %{_sysconfdir}/qubes-rpc/policy/ruddo.QueryFolderAuthorization
 %config(noreplace) %attr(0664, root, qubes) %{_sysconfdir}/qubes-rpc/policy/ruddo.ConnectToFolder
@@ -78,6 +81,7 @@ fi
 %attr(0755, root, root) %{_sysconfdir}/qubes-rpc/ruddo.QueryFolderAuthorization
 %attr(0755, root, root) %{_libexecdir}/qvm-authorize-folder-access
 %attr(0644, root, root) %{python3_sitearch}/sharedfolders/*
+%attr(0755, root, root) %{_bindir}/qvm-folder-share-manager
 %doc README.md TODO.md doc
 
 %changelog

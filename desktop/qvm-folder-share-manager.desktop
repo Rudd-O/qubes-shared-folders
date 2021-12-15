@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Exec=qvm-folder-share-manager
+Icon=folder-publicshare
+Terminal=false
+Name=Folder share manager
+GenericName=Folder share manager
+StartupNotify=false
+Categories=System;

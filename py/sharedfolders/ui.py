@@ -1,23 +1,24 @@
 #!/usr/bin/python3
 
+from __future__ import annotations
 
+from _ast import Continue
 import os
 import re
-from typing import Any
+from typing import Any, Optional, Union
 
 import gi  # type: ignore
 
 gi.require_version("Gtk", "3.0")
 gi.require_version("Notify", "0.7")
-
-# from gi.repository import Notify
-
-
-from gi.repository import Gtk  # type: ignore
+from gi.repository import Gio, Gtk, Gdk, GObject  # type: ignore
 
 from sharedfolders import (
     RESPONSES,
+    get_vm_list,
+    DecisionMatrix,
     Response,
+    ConnectToFolderPolicy,
 )
 
 
@@ -35,6 +36,22 @@ def search_for_ui_file(file: str) -> str:
     raise FileNotFoundError(file)
 
 
+def in_list(model: Gtk.ListStore, string: str) -> Union[int, bool]:
+    for n, v in enumerate(model):
+        if v[0] == string:
+            return n
+    return False
+
+
+def ensure_in_list(model: Gtk.ListStore, string: str) -> int:
+    inlist = in_list(model, string)
+    if inlist is False:
+        model.append((string,))
+        return len(model) - 1
+    else:
+        return inlist
+
+
 class AuthorizationDialog(object):
 
     response: Response = RESPONSES.DENY_ONETIME
@@ -42,7 +59,6 @@ class AuthorizationDialog(object):
     def __init__(self, client: str, server: str, folder: str):
         builder = Gtk.Builder()
         builder.add_from_file(search_for_ui_file("authorization-dialog.ui"))
-        # builder.connect_signals()
         self.builder = builder
         self.dialog = builder.get_object("dialog")
         self.dialog.set_title("Folder share request from %(client)s" % locals())
@@ -121,6 +137,317 @@ class AuthorizationDialog(object):
         return self.response
 
 
+class FolderShareManager(Gtk.Window):  # type: ignore
+    starting_decision_matrix: DecisionMatrix = DecisionMatrix()
+    working_decision_matrix: DecisionMatrix = DecisionMatrix()
+
+    def __init__(self, matrix: Optional[DecisionMatrix] = None) -> None:
+        self.vm_list: Gtk.ListStore = Gtk.ListStore()
+        Gtk.Window.__init__(self)
+        GObject.signal_new(
+            "save", self, GObject.SIGNAL_RUN_LAST, GObject.TYPE_PYOBJECT, ()
+        )
+
+        self.set_default_size(600, 400)
+        self.set_title("Folder share manager")
+        self.set_border_width(0)
+        self.connect("delete-event", self.close_attempt)
+        self.connect("destroy", self.quit)
+
+        prov = Gtk.CssProvider()
+        ctx = Gtk.StyleContext()
+        ctx.add_provider_for_screen(
+            Gdk.Display.get_default_screen(Gdk.Display.get_default()),
+            prov,
+            Gtk.STYLE_PROVIDER_PRIORITY_USER,
+        )
+        prov.load_from_data(
+            b"""
+            .individual-settings-container {
+                background-color: @theme_unfocused_base_color;
+                border: 1px solid @borders;
+                border-radius: 8px;
+            }
+            .individual-settings-row {
+                border-bottom: 1px solid @borders;
+                padding-top: 8px;
+                padding-bottom: 8px;
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+            .add-button {
+                margin: 8px;
+                margin-right: 12px;
+            }
+         """
+        )
+        self.settings_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.settings_container.set_spacing(8)
+
+        l = Gtk.Label("Allowed")
+        l.set_markup("<b>Allowed</b>")
+        l.set_xalign(0.0)
+        self.settings_container.add(l)
+
+        self.allowed_shares_list = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        icon = Gio.ThemedIcon(name="list-add")
+        image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
+        button = Gtk.Button()
+        button.get_style_context().add_class("add-button")
+        button.set_halign(Gtk.Align.END)
+        button.add(image)
+        button.connect(
+            "clicked", lambda *_: self.add_row(self.allowed_shares_list, "", "", "")
+        )
+        self.allowed_shares_list.add(button)
+        allowed_shares_list_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        allowed_shares_list_container.add(self.allowed_shares_list)
+        allowed_shares_list_container.get_style_context().add_class(
+            "individual-settings-container"
+        )
+        self.settings_container.add(allowed_shares_list_container)
+
+        l = Gtk.Label("Denied")
+        l.set_markup("<b>Denied</b>")
+        l.set_xalign(0.0)
+        self.settings_container.add(l)
+
+        self.denied_shares_list = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        icon = Gio.ThemedIcon(name="list-add")
+        image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
+        image.show()
+        button = Gtk.Button()
+        button.get_style_context().add_class("add-button")
+        button.set_halign(Gtk.Align.END)
+        button.add(image)
+        button.connect(
+            "clicked", lambda *_: self.add_row(self.denied_shares_list, "", "", "")
+        )
+        self.denied_shares_list.add(button)
+        denied_shares_list_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        denied_shares_list_container.add(self.denied_shares_list)
+        denied_shares_list_container.get_style_context().add_class(
+            "individual-settings-container"
+        )
+        self.settings_container.add(denied_shares_list_container)
+
+        scrolledwindow = Gtk.ScrolledWindow()
+        scrolledwindow.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scrolledwindow.add(self.settings_container)
+        scrolledwindow.set_border_width(18)
+        self.add(scrolledwindow)
+
+        header = Gtk.HeaderBar()
+        header.set_title(self.get_title())
+        header.set_has_subtitle(False)
+        self.set_titlebar(header)
+
+        icon = Gio.ThemedIcon(name="document-save")
+        image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
+        save = Gtk.Button()
+        save.set_tooltip_text("Exit saving settings changes")
+        save.add(image)
+        image.show()
+
+        def destroy_if_successful() -> None:
+            if not self.emit("delete-event", Gdk.Event(Gdk.EventType.DELETE)):
+                self.destroy()
+
+        save.connect("clicked", lambda *_: destroy_if_successful())
+        header.pack_end(save)
+
+        icon = Gio.ThemedIcon(name="gtk-revert-to-saved")
+        image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
+        revert = Gtk.Button()
+        revert.set_tooltip_text("Revert changes")
+        revert.add(image)
+        image.show()
+        revert.connect("clicked", lambda *_: self.revert())
+        header.pack_start(revert)
+
+        if matrix is None:
+            self.starting_decision_matrix = DecisionMatrix.load()
+        else:
+            self.starting_decision_matrix = matrix
+
+        self.revert()
+
+    def revert(self) -> None:
+        self.working_decision_matrix = self.starting_decision_matrix.copy()
+        self.display_decision_matrix(self.working_decision_matrix)
+
+    def update_working_decision_matrix(self) -> None:
+        for f, decision in list(self.working_decision_matrix.items()):
+            if decision.response.is_onetime():
+                continue
+            del self.working_decision_matrix[f]
+        for obj, response in [
+            (self.allowed_shares_list, RESPONSES.ALLOW_ALWAYS),
+            (self.denied_shares_list, RESPONSES.ALLOW_ONETIME),
+        ]:
+            for row in obj.get_children():
+                try:
+                    source, target, folder, _ = row.get_children()
+                except ValueError:
+                    # This is the add button row.  We ignore it.
+                    continue
+                source = source.get_model()[int(source.get_active())][0]
+                target = target.get_model()[int(target.get_active())][0]
+                if source == target:
+                    raise ValueError(
+                        "The source qube %s cannot be the same as the target qube %s."
+                        % (source, target)
+                    )
+                f = folder.get_text()
+                g = os.path.abspath(f)
+                if f != g:
+                    raise ValueError(
+                        "The path %s must be a canonical absolute path" % f
+                    )
+                folder.set_text(g)
+                folder = folder.get_text()
+                self.working_decision_matrix.add_decision(
+                    source, target, folder, response
+                )
+        self.starting_decision_matrix = self.working_decision_matrix.copy()
+
+    def save(self) -> None:
+        exc = None
+        try:
+            self.update_working_decision_matrix()
+        except Exception as e:
+            exc = e
+            title = "Policy error"
+            message = "One of your share policies has a problem:\n\n%s" % e
+        try:
+            self.working_decision_matrix.save()
+            ConnectToFolderPolicy.apply_policy_changes_from(
+                self.working_decision_matrix
+            )
+        except Exception as f:
+            exc = f
+            title = "Problem while saving"
+            message = "There was an error saving or enabling policy changes:\n\n%s" % f
+
+        if exc is not None:
+            d = Gtk.MessageDialog(
+                self,
+                Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                Gtk.MessageType.ERROR,
+                Gtk.ButtonsType.CLOSE,
+            )
+            d.set_markup("""<big><b>%s</b></big>""" % title)
+            d.format_secondary_text("%s" % message)
+            d.show_all()
+            d.set_modal(True)
+            d.connect("response", lambda *_: d.destroy())
+            raise exc
+
+    def clear_rows(self) -> None:
+        for obj in [self.allowed_shares_list, self.denied_shares_list]:
+            for row in obj.get_children():
+                if not isinstance(row, Gtk.Button):
+                    obj.remove(row)
+                    row.destroy()
+
+    def display_decision_matrix(self, matrix: DecisionMatrix) -> None:
+        self.starting_decision_matrix = matrix
+        self.working_decision_matrix = matrix.copy()
+        self.clear_rows()
+        for x in self.working_decision_matrix.values():
+            if not x.response.is_onetime():
+                if x.response.is_allow():
+                    obj = self.allowed_shares_list
+                else:
+                    obj = self.denied_shares_list
+                self.add_row(obj, x.source, x.target, x.folder)
+
+    def get_vm_list(self) -> Gtk.ListStore:
+        if len(self.vm_list) == 0:
+            v = get_vm_list()
+            self.vm_list = Gtk.ListStore(str)
+            for x in v:
+                if not is_disp(x):
+                    self.vm_list.append((x,))
+        return self.vm_list
+
+    def add_row(
+        self, towhat: Gtk.Box, source_s: str, target_s: str, folder_s: str
+    ) -> None:
+        share_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        share_row.get_style_context().add_class("individual-settings-row")
+        share_row.set_spacing(6)
+        source = Gtk.ComboBox()
+        source.set_model(self.get_vm_list())
+        if source_s:
+            source.set_active(ensure_in_list(source.get_model(), source_s))
+        cell = Gtk.CellRendererText()
+        source.pack_start(cell, False)
+        source.add_attribute(cell, "text", 0)
+
+        target = Gtk.ComboBox()
+        target.set_model(self.get_vm_list())
+        cell = Gtk.CellRendererText()
+        target.pack_start(cell, False)
+        target.add_attribute(cell, "text", 0)
+        if target_s:
+            target.set_active(ensure_in_list(target.get_model(), target_s))
+
+        path = Gtk.Entry()
+        path.set_hexpand(True)
+        if folder_s:
+            path.set_text(folder_s)
+
+        def delete_row() -> None:
+            towhat.remove(share_row)
+            share_row.destroy()
+
+        icon = Gio.ThemedIcon(name="list-remove")
+        image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
+        delete = Gtk.Button()
+        delete.add(image)
+        image.show()
+        delete.connect("clicked", lambda *_: delete_row())
+
+        for x in [source, target, path, delete]:
+            share_row.add(x)
+            x.show()
+        towhat.add(share_row)
+        share_row.show()
+        source.grab_focus()
+
+        add_button = [x for x in towhat.get_children() if isinstance(x, Gtk.Button)][0]
+        towhat.reorder_child(add_button, len(towhat.get_children()) - 1)
+
+        # use this for the dialog that asks for folder share authorization!
+        # https://developer.gnome.org/hig/patterns/feedback/dialogs.html
+
+        # use the boxed lists pattern for folder share manager, splitting
+        # the controls into two rows, top are the source and target VM,
+        # bottom the folder entry and the allow/block button with an indicator
+        # next to it.  and figure out how to change the color of the slider to
+        # red when it is disabled (blocked)
+        # https://developer.gnome.org/hig/patterns/containers/boxed-lists.html
+
+    def show_all(self) -> None:
+        Gtk.Window.show_all(self)
+
+    def close_attempt(self, *unused_args: Any) -> bool:
+        try:
+            self.save()
+            return False
+        except Exception:
+            return True
+
+    def quit(self, *unused_args: Any) -> None:
+        Gtk.main_quit()
+
+    def run(self) -> None:
+        self.show_all()
+        Gtk.main()
+
+
+# from gi.repository import Notify
 # class FIXME(Gtk.Window):
 ## Notification example code!
 # def __init__(self):

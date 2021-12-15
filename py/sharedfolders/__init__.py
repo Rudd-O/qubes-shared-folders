@@ -11,7 +11,21 @@ import logging
 import os
 import subprocess
 import sys
-from typing import Literal, Optional, Tuple, Dict, TypeVar, Type, Any
+from typing import Literal, Optional, Tuple, Dict, TypeVar, Type, Any, List
+
+
+def get_vm_list() -> List[str]:
+    try:
+        vm_list = subprocess.check_output(
+            ["qvm-ls", "--raw-list"], universal_newlines=True
+        ).splitlines()
+    except FileNotFoundError:
+        return ["demovm", "work", "stuff", "social", "sys-usb"]
+    if "dom0" in vm_list:
+        vm_list.remove("dom0")
+    if "" in vm_list:
+        vm_list.remove("")
+    return vm_list
 
 
 class Response(object):
@@ -93,6 +107,14 @@ class Decision(object):
         self.folder = folder
         self.response = response
 
+    def __repr__(self) -> str:
+        return "<Decision %r -> %r: %r = %s>" % (
+            self.source,
+            self.target,
+            self.folder,
+            self.response,
+        )
+
 
 class DecisionMatrix(Dict[str, Decision]):
     POLICY_DB = "/etc/qubes/shared-folders/policy.db"
@@ -120,6 +142,20 @@ class DecisionMatrix(Dict[str, Decision]):
         except Exception:
             return klass()
 
+    def add_decision(
+        self, source: str, target: str, folder: str, response: Response
+    ) -> str:
+        if response.is_block():
+            # The user means to block ALL, so we transform this into
+            # a complete block for the machine, by blocking the root
+            # directory, which means to block absolutely everything.
+            response = RESPONSES.DENY_ALWAYS
+            folder = "/"
+        fingerprint = fingerprint_decision(source, target, folder)
+        decision = Decision(source, target, folder, response)
+        self[fingerprint] = decision
+        return fingerprint
+
     def save(self) -> None:
         class DecisionMatrixEncoder(json.JSONEncoder):
             def default(self, obj: Any) -> Any:
@@ -133,6 +169,17 @@ class DecisionMatrix(Dict[str, Decision]):
             json.dump(self, db, indent=4, sort_keys=True, cls=DecisionMatrixEncoder)
         os.chmod(self.POLICY_DB + ".tmp", 0o664)
         os.rename(self.POLICY_DB + ".tmp", self.POLICY_DB)
+
+    def copy(self) -> DecisionMatrix:
+        newd = DecisionMatrix()
+        for k, v in self.items():
+            newd[k] = Decision(
+                v.source,
+                v.target,
+                v.folder,
+                v.response,
+            )
+        return newd
 
     def revoke_onetime_accesses_for_fingerprint(self, fingerprint: str) -> None:
         """This method mutates the internal state and updates the policy on disk."""
@@ -191,15 +238,7 @@ class DecisionMatrix(Dict[str, Decision]):
         lookup_prior_authorization.
 
         This method mutates the internal state and updates the policy on disk."""
-        if response.is_block():
-            # The user means to block ALL, so we transform this into
-            # a complete block for the machine, by blocking the root
-            # directory, which means to block absolutely everything.
-            response = RESPONSES.DENY_ALWAYS
-            folder = "/"
-        fingerprint = fingerprint_decision(source, target, folder)
-        decision = Decision(source, target, folder, response)
-        self[fingerprint] = decision
+        fingerprint = self.add_decision(source, target, folder, response)
         ConnectToFolderPolicy.apply_policy_changes_from(self)
         self.save()
         return fingerprint

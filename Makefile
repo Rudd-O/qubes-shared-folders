@@ -39,7 +39,9 @@ install-dom0: install-py
 	install -Dm 755 etc/qubes-rpc/ruddo.AuthorizeFolderAccess -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/
 	install -Dm 755 etc/qubes-rpc/ruddo.QueryFolderAuthorization -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/
 	install -Dm 755 libexec/qvm-authorize-folder-access -t $(DESTDIR)/$(LIBEXECDIR)/
+	install -Dm 755 bin/qvm-folder-share-manager -t $(DESTDIR)/$(BINDIR)/
 	install -Dm 644 ui/*.ui -t $(DESTDIR)/$(DATADIR)/$(PROGNAME)/ui/
+	install -Dm 644 desktop/*.desktop -t $(DESTDIR)/$(DATADIR)/applications/
 	mkdir -p $(DESTDIR)/$(SYSCONFDIR)/qubes/shared-folders
 	chmod 2775 $(DESTDIR)/$(SYSCONFDIR)/qubes/shared-folders
 	getent group qubes >/dev/null 2>&1 || exit 0 ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes/shared-folders
