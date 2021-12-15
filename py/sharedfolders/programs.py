@@ -149,13 +149,13 @@ def AuthorizeFolderAccess() -> int:
             "VM %s has yet to receive a response for %s:%s", source, target, folder
         )
         # User has never been asked.
-        new_response = ask_for_authorization(source, target, folder)
+        response = ask_for_authorization(source, target, folder)
         fingerprint = DecisionMatrix.load().process_authorization_request(
-            source, target, folder, new_response
+            source, target, folder, response
         )
-        logger.info("Response: %s; fingerprint: %s", new_response, fingerprint)
+        logger.info("Response: %s; fingerprint: %s", response, fingerprint)
 
-    if not response.is_allow():
+    if not response or not response.is_allow():
         return deny()
 
     sys.stdout.write(fingerprint)
