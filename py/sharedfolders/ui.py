@@ -20,7 +20,6 @@ from sharedfolders import (
 )
 
 
-
 def search_for_ui_file(file: str) -> str:
     for trial in [
         os.path.join("ui", file),
@@ -110,10 +109,14 @@ class AuthorizationDialog(object):
         folder_label = self.builder.get_object("folder")
         folder_label.set_text(folder)
         folder_label.get_style_context().add_class("folder")
-        self.builder.get_object("dialog-action-area").get_style_context().add_class("action-area")
+        self.builder.get_object("dialog-action-area").get_style_context().add_class(
+            "action-area"
+        )
         self.builder.get_object("main-face").get_style_context().add_class("main-face")
         self.builder.get_object("ok").get_style_context().add_class("right")
-        self.builder.get_object("folder-share-manager").get_style_context().add_class("left")
+        self.builder.get_object("folder-share-manager").get_style_context().add_class(
+            "left"
+        )
         self.collect_response()
         self.prior_remember_active = None
         self.prior_remember_sensitive = None
