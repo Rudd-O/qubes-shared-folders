@@ -144,7 +144,7 @@ def AuthorizeFolderAccess() -> int:
             response,
             fingerprint,
         )
-        if response.is_deny():
+        if not response.is_allow():
             return deny()
     else:
         logger.info(

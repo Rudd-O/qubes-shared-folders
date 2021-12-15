@@ -27,23 +27,17 @@ class Response(object):
     def is_allow(self) -> bool:
         return self.name.startswith("ALLOW")
 
-    def is_deny(self) -> bool:
-        return self.name.startswith("DENY")
-
     def is_onetime(self) -> bool:
         return self.name.endswith("ONETIME")
 
+    def is_block(self) -> bool:
+        return self.name == "BLOCK"
+
     @staticmethod
     def from_string(string: str) -> Response:
-        r = {
-            "ALLOW_ONETIME": RESPONSE_ALLOW_ONETIME,
-            "DENY_ONETIME": RESPONSE_DENY_ONETIME,
-            "ALLOW_ALWAYS": RESPONSE_ALLOW_ALWAYS,
-            "DENY_ALWAYS": RESPONSE_DENY_ALWAYS,
-            "BLOCK": RESPONSE_BLOCK,
-        }
+        global RESPONSES
         try:
-            return r[string]
+            return RESPONSES[string]
         except KeyError:
             raise ValueError(string)
 
@@ -53,6 +47,13 @@ RESPONSE_DENY_ONETIME = Response("DENY_ONETIME")
 RESPONSE_ALLOW_ALWAYS = Response("ALLOW_ALWAYS")
 RESPONSE_DENY_ALWAYS = Response("DENY_ALWAYS")
 RESPONSE_BLOCK = Response("BLOCK")
+RESPONSES = {
+    str(RESPONSE_ALLOW_ONETIME): RESPONSE_ALLOW_ONETIME,
+    str(RESPONSE_DENY_ONETIME): RESPONSE_DENY_ONETIME,
+    str(RESPONSE_ALLOW_ALWAYS): RESPONSE_ALLOW_ALWAYS,
+    str(RESPONSE_DENY_ALWAYS): RESPONSE_DENY_ALWAYS,
+    str(RESPONSE_BLOCK): RESPONSE_BLOCK,
+}
 
 
 logger = logging.getLogger(__name__)
@@ -88,7 +89,7 @@ class Decision(object):
     source: str = ""
     target: str = ""
     folder: str = ""
-    response: Response = RESPONSE_DENY_ALWAYS
+    response: Response = Response("invalid")
 
     def __init__(self, source: str, target: str, folder: str, response: Response):
         self.source = source
@@ -194,7 +195,7 @@ class DecisionMatrix(Dict[str, Decision]):
         lookup_prior_authorization.
 
         This method mutates the internal state and updates the policy on disk."""
-        if response is RESPONSE_BLOCK:
+        if response.is_block():
             # The user means to block ALL, so we transform this into
             # a complete block for the machine, by blocking the root
             # directory, which means to block absolutely everything.
