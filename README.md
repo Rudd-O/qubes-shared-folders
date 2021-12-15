@@ -82,6 +82,11 @@ Temporary one-time grants or denials are handled internally, not
 persisted for long (they are ephemeral) and they cannot be modified
 through this settings tool.
 
+Note that grants and denial do not automatically translate into
+qubes auto-mounting folders on boot -- they are merely permissions
+— you need to figure out how to mount folders when your qube powers
+on, using the XDG autostart facility.
+
 ## Comparison with other solutions
 
 * File copy/move between VMs: serves a different use case, although
