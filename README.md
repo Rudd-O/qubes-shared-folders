@@ -15,15 +15,6 @@ running on the server qube, and the `v9fs` kernel file system module
 on the client qube.  These two components talk over the Qubes RPC
 mechanism.
 
-The client initiates a Qubes RPC connection to the server qube,
-asking it to share a specific folder (which must exist).  If the RPC
-mechanism authorizes it (by prompting you), then the server qube
-starts a `diod` instance, and the client uses the established I/O
-channel to mount the shared folder onto a folder of its file system
-tree.
-
-The design is documented [here](./doc/authorization-design.md).
-
 ## Usage
 
 The following instructions assume that the qube which contains the
@@ -123,6 +114,17 @@ For comparison:
 * `diod` raw C language line count: *40 thousand*
 * `samba` raw C / C++ language line count: **over 2 million**
 * NFS' and rsync's line counts are homework for the reader.
+
+## Design
+
+When authorized, the client qube initiates a Qubes RPC connection to
+the server qube, asking it to share a specific folder (which must
+exist).  If the RPC mechanism authorizes it (by prompting you), then
+the server qube starts a `diod` instance, and the client uses the
+established I/O channel to mount the shared folder onto a folder of
+its file system tree.
+
+The full design is documented [here](./doc/authorization-design.md).
 
 ## Security considerations
 
