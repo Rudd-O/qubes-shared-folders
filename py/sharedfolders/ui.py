@@ -280,7 +280,7 @@ class FolderShareManager(Gtk.Window):  # type: ignore
         header.set_has_subtitle(False)
         self.set_titlebar(header)
 
-        icon = Gio.ThemedIcon(name="document-save")
+        icon = Gio.ThemedIcon(name="document-save-symbolic")
         image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
         save = Gtk.Button()
         save.set_tooltip_text("Exit saving settings changes")
@@ -294,7 +294,7 @@ class FolderShareManager(Gtk.Window):  # type: ignore
         save.connect("clicked", lambda *_: destroy_if_successful())
         header.pack_end(save)
 
-        icon = Gio.ThemedIcon(name="gtk-revert-to-saved")
+        icon = Gio.ThemedIcon(name="document-revert-symbolic")
         image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
         revert = Gtk.Button()
         revert.set_tooltip_text("Revert changes")
