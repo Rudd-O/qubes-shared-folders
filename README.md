@@ -22,6 +22,8 @@ starts a `diod` instance, and the client uses the established I/O
 channel to mount the shared folder onto a folder of its file system
 tree.
 
+The design is documented [here](./doc/authorization-design.md).
+
 ## Usage
 
 The following instructions assume that the qube which contains the
