@@ -6,6 +6,8 @@ import subprocess
 from typing import Any, Optional, Union
 
 import gi  # type: ignore
+
+gi.require_version("Gtk", "3.0")
 from gi.repository import Gio, Gtk, Gdk, GObject  # type: ignore
 
 from sharedfolders import (
@@ -17,9 +19,6 @@ from sharedfolders import (
     is_disp,
 )
 
-
-gi.require_version("Gtk", "3.0")
-gi.require_version("Notify", "0.7")
 
 
 def search_for_ui_file(file: str) -> str:
@@ -472,6 +471,7 @@ class FolderShareManager(Gtk.Window):  # type: ignore
         Gtk.main()
 
 
+# gi.require_version("Notify", "0.7")
 # from gi.repository import Notify
 # class FIXME(Gtk.Window):
 ## Notification example code!
