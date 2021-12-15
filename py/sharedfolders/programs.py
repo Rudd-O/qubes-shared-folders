@@ -144,8 +144,6 @@ def AuthorizeFolderAccess() -> int:
             response,
             fingerprint,
         )
-        if not response.is_allow():
-            return deny()
     else:
         logger.info(
             "VM %s has yet to receive a response for %s:%s", source, target, folder
@@ -156,6 +154,9 @@ def AuthorizeFolderAccess() -> int:
             source, target, folder, new_response
         )
         logger.info("Response: %s; fingerprint: %s", new_response, fingerprint)
+
+    if not response.is_allow():
+        return deny()
 
     sys.stdout.write(fingerprint)
     sys.stdout.close()
