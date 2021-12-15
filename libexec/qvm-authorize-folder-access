@@ -1,0 +1,6 @@
+#!/usr/bin/python3
+
+import sys
+from sharedfolders.ui import AuthorizationDialog
+
+print(AuthorizationDialog(*sys.argv[1:]).run())

@@ -3,4 +3,4 @@
 import sys
 import sharedfolders.programs
 
-sys.exit(sharedfolders.programs.QvmMountFolder())
+sys.exit(sharedfolders.programs.AuthorizeFolderAccess())

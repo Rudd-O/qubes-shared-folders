@@ -70,8 +70,9 @@ If we allow the server qube to store and permit policy decisions, then a malicio
 
 ## Corner cases
 
-* How do we deal with DispVMs?  I think the reasonble thing to do is to prohibit always-allow access in those cases, since that could lead to intended access to a DispVM permitted today, but unintended access permitted to another DispVM (with the same random number) created months down the road.
+* DispVMs: we prohibit always-allow access in those cases, since that could lead to intended access to a DispVM permitted today, but unintended access permitted to another DispVM (with the same random number) created months down the road.  The only case acceptable is to blanket deny or block, which is supported by the code.
 * Access to dom0 will never be allowed.  The service `ruddo.ConnectToFolder` will simply not be made available.
+* Loopback access will not be permitted either.
 * It is possible for client qubes to request access to server folders that do not exist.  This is presumably fine given the alternative of unauthorized information disclosure.
 
 # Deliverables

@@ -1,0 +1,4 @@
+## This policy is used by VMs to verify folder authorization.
+## Do not change this or add policy -- this is managed by qubes-shared-folders.
+
+$anyvm $anyvm deny

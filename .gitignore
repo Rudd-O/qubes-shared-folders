@@ -1,2 +1,5 @@
 *.rpm
 *.tar.gz
+*.pyc
+*~
+/.mypy_cache/
