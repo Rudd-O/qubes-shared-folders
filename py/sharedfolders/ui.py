@@ -2,6 +2,7 @@
 
 import os
 import re
+import subprocess
 from typing import Any, Optional, Union
 
 import gi  # type: ignore
@@ -47,6 +48,17 @@ def ensure_in_list(model: Gtk.ListStore, string: str) -> int:
         return inlist
 
 
+def add_css(css: bytes) -> None:
+    prov = Gtk.CssProvider()
+    ctx = Gtk.StyleContext()
+    ctx.add_provider_for_screen(
+        Gdk.Display.get_default_screen(Gdk.Display.get_default()),
+        prov,
+        Gtk.STYLE_PROVIDER_PRIORITY_USER,
+    )
+    prov.load_from_data(css)
+
+
 class AuthorizationDialog(object):
 
     response = RESPONSES.DENY_ONETIME
@@ -55,6 +67,35 @@ class AuthorizationDialog(object):
         builder = Gtk.Builder()
         builder.add_from_file(search_for_ui_file("authorization-dialog.ui"))
         self.builder = builder
+
+        add_css(
+            b"""
+            .folder {
+                background-color: @theme_unfocused_base_color;
+                border: 1px solid @borders;
+                border-radius: 8px;
+                padding: 8px;
+            }
+            .action-area {
+                border-top: 1px solid @borders;
+            }
+            .action-area button.left {
+                border-right: 1px solid @borders;
+                border-radius: 0;
+            }
+            .action-area button.right {
+                border-left: 1px solid @borders;
+                border-radius: 0;
+            }
+            .main-face {
+                padding: 18px;
+                padding-left: 28px;
+                padding-right: 28px;
+                padding-bottom: 0;
+            }
+         """
+        )
+
         self.dialog = builder.get_object("dialog")
         self.dialog.set_title("Folder share request from %(client)s" % locals())
         self.builder.connect_signals(self)
@@ -67,7 +108,13 @@ class AuthorizationDialog(object):
         self.builder.get_object("explanation").set_markup(
             self.builder.get_object("explanation").get_label() % locals()
         )
-        self.builder.get_object("folder").set_text(folder)
+        folder_label = self.builder.get_object("folder")
+        folder_label.set_text(folder)
+        folder_label.get_style_context().add_class("folder")
+        self.builder.get_object("dialog-action-area").get_style_context().add_class("action-area")
+        self.builder.get_object("main-face").get_style_context().add_class("main-face")
+        self.builder.get_object("ok").get_style_context().add_class("right")
+        self.builder.get_object("folder-share-manager").get_style_context().add_class("left")
         self.collect_response()
         self.prior_remember_active = None
         self.prior_remember_sensitive = None
@@ -152,14 +199,7 @@ class FolderShareManager(Gtk.Window):  # type: ignore
         self.connect("delete-event", self.close_attempt)
         self.connect("destroy", self.quit)
 
-        prov = Gtk.CssProvider()
-        ctx = Gtk.StyleContext()
-        ctx.add_provider_for_screen(
-            Gdk.Display.get_default_screen(Gdk.Display.get_default()),
-            prov,
-            Gtk.STYLE_PROVIDER_PRIORITY_USER,
-        )
-        prov.load_from_data(
+        add_css(
             b"""
             .individual-settings-container {
                 background-color: @theme_unfocused_base_color;
