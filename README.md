@@ -72,11 +72,15 @@ folder to resolve the issue.
 
 ### Manage file shares
 
-Your dom0 has an application called *Folder share manager*
+Your dom0 has a settings tool called *Folder share manager*
 (`qvm-folder-share-manager`) that allows you to define or revoke
-grants or blocks on particular file shares:
+*permanent* grants or denials on particular file shares:
 
 ![Authorization dialog example](./doc/folder-share-manager.png)
+
+Temporary one-time grants or denials are handled internally, not
+persisted for long (they are ephemeral) and they cannot be modified
+through this settings tool.
 
 ## Comparison with other solutions
 
