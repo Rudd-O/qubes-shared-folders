@@ -1,17 +1,22 @@
 #!/usr/bin/python3
 
-from __future__ import annotations
-
 import base64
 import errno
 import glob
 import hashlib
+from json import JSONEncoder
 import json
 import logging
 import os
+import re
 import subprocess
 import sys
-from typing import Literal, Optional, Tuple, Dict, TypeVar, Type, Any, List
+from typing import Optional, Tuple, Dict, Type, Any, List
+
+
+PATH_MAX = 4096
+# from qubes.vm package in dom0
+VM_REGEX = "^[a-zA-Z][a-zA-Z0-9_-]*$"
 
 
 def get_vm_list() -> List[str]:
@@ -28,8 +33,25 @@ def get_vm_list() -> List[str]:
     return vm_list
 
 
+def is_disp(vm: str) -> bool:
+    return bool(re.match("^disp[0-9]+$", vm))
+
+
+def valid_vm_name(target: str) -> bool:
+    if not target:
+        raise ValueError(target)
+    if re.match(VM_REGEX, target) is None:
+        raise ValueError(target)
+    vm_list = get_vm_list()
+    return target in vm_list
+
+
+def valid_path(folder: str) -> bool:
+    return len(folder) < PATH_MAX and os.path.abspath(folder) == folder
+
+
 class Response(object):
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.name = name
 
     def __str__(self) -> str:
@@ -48,7 +70,7 @@ class Response(object):
         return self.name == "BLOCK"
 
     @staticmethod
-    def from_string(string: str) -> Response:
+    def from_string(string):  # type: (str) -> Response
         global RESPONSES
         try:
             r = RESPONSES.__dict__[string]
@@ -96,12 +118,14 @@ def fingerprint_decision(source: str, target: str, folder: str) -> str:
 
 
 class Decision(object):
-    source: str = ""
-    target: str = ""
-    folder: str = ""
-    response: Response = Response("invalid")
+    source = ""
+    target = ""
+    folder = ""
+    response = Response("invalid")
 
-    def __init__(self, source: str, target: str, folder: str, response: Response):
+    def __init__(
+        self, source: str, target: str, folder: str, response: Response
+    ) -> None:
         self.source = source
         self.target = target
         self.folder = folder
@@ -120,7 +144,7 @@ class DecisionMatrix(Dict[str, Decision]):
     POLICY_DB = "/etc/qubes/shared-folders/policy.db"
 
     @classmethod
-    def load(klass: Type[DecisionMatrix]) -> DecisionMatrix:
+    def load(klass):  # type: (Type[DecisionMatrix]) -> DecisionMatrix
         def hook(obj: Dict[Any, Any]) -> Any:
             if "folder" in obj:
                 return Decision(
@@ -142,9 +166,29 @@ class DecisionMatrix(Dict[str, Decision]):
         except Exception:
             return klass()
 
+    def check_decision(
+        self, source: str, target: str, folder: str, response: Optional[Response]
+    ) -> None:
+        if source == target:
+            raise ValueError(
+                "The source qube %s cannot be the same as the target qube %s."
+                % (source, target)
+            )
+        if not valid_path(folder):
+            raise ValueError("The path %s must be a canonical absolute path" % folder)
+        if not valid_vm_name(source):
+            raise ValueError("The source qube is not valid")
+        if not valid_vm_name(target):
+            raise ValueError("The target qube is not valid")
+        if (is_disp(source) or is_disp(target)) and (
+            response and not response.is_onetime() and response.is_allow()
+        ):
+            raise ValueError("Permanent grants are not allowed for disposable qubes")
+
     def add_decision(
         self, source: str, target: str, folder: str, response: Response
     ) -> str:
+        self.check_decision(source, target, folder, response)
         if response.is_block():
             # The user means to block ALL, so we transform this into
             # a complete block for the machine, by blocking the root
@@ -157,20 +201,20 @@ class DecisionMatrix(Dict[str, Decision]):
         return fingerprint
 
     def save(self) -> None:
-        class DecisionMatrixEncoder(json.JSONEncoder):
+        class DecisionMatrixEncoder(JSONEncoder):
             def default(self, obj: Any) -> Any:
                 if isinstance(obj, Decision):
                     return obj.__dict__
                 if isinstance(obj, Response):
                     return str(obj)
-                return json.JSONEncoder.default(self, obj)
+                return JSONEncoder.default(self, obj)
 
         with open(self.POLICY_DB + ".tmp", "w") as db:
             json.dump(self, db, indent=4, sort_keys=True, cls=DecisionMatrixEncoder)
         os.chmod(self.POLICY_DB + ".tmp", 0o664)
         os.rename(self.POLICY_DB + ".tmp", self.POLICY_DB)
 
-    def copy(self) -> DecisionMatrix:
+    def copy(self):  # type: () -> DecisionMatrix
         newd = DecisionMatrix()
         for k, v in self.items():
             newd[k] = Decision(

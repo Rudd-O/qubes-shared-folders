@@ -42,6 +42,9 @@ qvm-mount-folder server /home/user mnt
 
 At this point you will see an authorization message from dom0 asking
 you if you really want to give `client` access to `server`'s files.
+
+![Authorization dialog example](./doc/auth-dialog.png)
+
 This access can be denied one-time or perpetually, and it can also
 be granted one-time (for the duration of the mount) or permanently.
 Note that the access granted is limited to the requested folder and
@@ -66,6 +69,14 @@ If your `server` qube shuts off before you unmount the mounted share,
 you'll see `I/O error`s on the `client` qube whenever you attempt
 to access the mounted share.  You can always unmount the errored
 folder to resolve the issue.
+
+### Manage file shares
+
+Your dom0 has an application called *Folder share manager*
+(`qvm-folder-share-manager`) that allows you to define or revoke
+grants or blocks on particular file shares:
+
+![Authorization dialog example](./doc/folder-share-manager.png)
 
 ## Comparison with other solutions
 

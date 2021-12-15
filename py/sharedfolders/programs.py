@@ -5,17 +5,13 @@ import errno
 import getpass
 import logging
 import os
-import re
 import subprocess
 import sys
 
-from sharedfolders import DecisionMatrix, Response, get_vm_list
+from sharedfolders import DecisionMatrix, Response, PATH_MAX, valid_path
 
 
-PATH_MAX = 4096
 VM_NAME_MAX = 64
-# from qubes.vm package in dom0
-VM_REGEX = "^[a-zA-Z][a-zA-Z0-9_-]*$"
 
 
 def setup_logging() -> None:
@@ -36,15 +32,6 @@ def deny() -> int:
     return errno.EACCES
 
 
-def valid_vm_name(target: str) -> bool:
-    if not target:
-        raise ValueError(target)
-    if re.match(VM_REGEX, target) is None:
-        raise ValueError(target)
-    vm_list = get_vm_list()
-    return target in vm_list
-
-
 def check_target_is_dom0() -> bool:
     return (
         os.getenv("QREXEC_REQUESTED_TARGET_TYPE") == "name"
@@ -53,10 +40,6 @@ def check_target_is_dom0() -> bool:
         os.getenv("QREXEC_REQUESTED_TARGET_TYPE") == "keyword"
         and os.getenv("QREXEC_REQUESTED_TARGET_KEYWORD") == "adminvm"
     )
-
-
-def valid_path(folder: str) -> bool:
-    return len(folder) < PATH_MAX and os.path.abspath(folder) == folder
 
 
 def base_to_str(binarydata: bytes) -> str:
@@ -109,21 +92,15 @@ def AuthorizeFolderAccess() -> int:
 
     try:
         target = base_to_str(base64_target)
-        if not valid_vm_name(target):
-            return deny()
-    except Exception:
-        return reject("the target VM is malformed or has invalid characters")
-    if source == target:
-        return reject("cannot request file share to and from the same VM")
-
-    try:
         folder = base_to_str(base64_folder)
-        if not valid_path(folder):
-            raise ValueError(folder)
     except Exception:
-        return reject(
-            "the requested folder is malformed, is not a proper absolute path, or has invalid characters"
-        )
+        return reject("the parameters could not be decoded")
+
+    matrix = DecisionMatrix.load()
+    try:
+        matrix.check_decision(source, target, folder, None)
+    except Exception as e:
+        return reject(str(e))
 
     response, fingerprint = DecisionMatrix.load().lookup_prior_authorization(
         source, target, folder

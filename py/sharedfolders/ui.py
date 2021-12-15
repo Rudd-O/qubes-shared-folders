@@ -1,16 +1,10 @@
 #!/usr/bin/python3
 
-from __future__ import annotations
-
-from _ast import Continue
 import os
 import re
 from typing import Any, Optional, Union
 
 import gi  # type: ignore
-
-gi.require_version("Gtk", "3.0")
-gi.require_version("Notify", "0.7")
 from gi.repository import Gio, Gtk, Gdk, GObject  # type: ignore
 
 from sharedfolders import (
@@ -19,11 +13,12 @@ from sharedfolders import (
     DecisionMatrix,
     Response,
     ConnectToFolderPolicy,
+    is_disp,
 )
 
 
-def is_disp(vm: str) -> bool:
-    return bool(re.match("^disp[0-9]+$", vm))
+gi.require_version("Gtk", "3.0")
+gi.require_version("Notify", "0.7")
 
 
 def search_for_ui_file(file: str) -> str:
@@ -54,7 +49,7 @@ def ensure_in_list(model: Gtk.ListStore, string: str) -> int:
 
 class AuthorizationDialog(object):
 
-    response: Response = RESPONSES.DENY_ONETIME
+    response = RESPONSES.DENY_ONETIME
 
     def __init__(self, client: str, server: str, folder: str):
         builder = Gtk.Builder()
@@ -138,11 +133,11 @@ class AuthorizationDialog(object):
 
 
 class FolderShareManager(Gtk.Window):  # type: ignore
-    starting_decision_matrix: DecisionMatrix = DecisionMatrix()
-    working_decision_matrix: DecisionMatrix = DecisionMatrix()
+    starting_decision_matrix = DecisionMatrix()
+    working_decision_matrix = DecisionMatrix()
 
     def __init__(self, matrix: Optional[DecisionMatrix] = None) -> None:
-        self.vm_list: Gtk.ListStore = Gtk.ListStore()
+        self.vm_list = Gtk.ListStore()
         Gtk.Window.__init__(self)
         GObject.signal_new(
             "save", self, GObject.SIGNAL_RUN_LAST, GObject.TYPE_PYOBJECT, ()
@@ -283,7 +278,7 @@ class FolderShareManager(Gtk.Window):  # type: ignore
             del self.working_decision_matrix[f]
         for obj, response in [
             (self.allowed_shares_list, RESPONSES.ALLOW_ALWAYS),
-            (self.denied_shares_list, RESPONSES.ALLOW_ONETIME),
+            (self.denied_shares_list, RESPONSES.DENY_ALWAYS),
         ]:
             for row in obj.get_children():
                 try:
@@ -293,18 +288,6 @@ class FolderShareManager(Gtk.Window):  # type: ignore
                     continue
                 source = source.get_model()[int(source.get_active())][0]
                 target = target.get_model()[int(target.get_active())][0]
-                if source == target:
-                    raise ValueError(
-                        "The source qube %s cannot be the same as the target qube %s."
-                        % (source, target)
-                    )
-                f = folder.get_text()
-                g = os.path.abspath(f)
-                if f != g:
-                    raise ValueError(
-                        "The path %s must be a canonical absolute path" % f
-                    )
-                folder.set_text(g)
                 folder = folder.get_text()
                 self.working_decision_matrix.add_decision(
                     source, target, folder, response
@@ -367,8 +350,7 @@ class FolderShareManager(Gtk.Window):  # type: ignore
             v = get_vm_list()
             self.vm_list = Gtk.ListStore(str)
             for x in v:
-                if not is_disp(x):
-                    self.vm_list.append((x,))
+                self.vm_list.append((x,))
         return self.vm_list
 
     def add_row(

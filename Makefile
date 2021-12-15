@@ -6,7 +6,7 @@ DESTDIR=
 PROGNAME=qubes-shared-folders
 SITEPACKAGES=$(shell python3 -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")
 
-.PHONY: clean install-client install-dom0 install-py black test
+.PHONY: clean install-client install-dom0 install-py black test mypy unit
 
 clean:
 	find -name '*~' -print0 | xargs -0 rm -fv
@@ -49,7 +49,10 @@ install-dom0: install-py
 black:
 	grep "^#!/usr/bin/python3" -r . | cut -d : -f 1 | sort | uniq | xargs -n1 black
 
-test:
-	cd py && export PYTHONPATH="$$PWD" && mypy --strict -p sharedfolders
+unit:
 	cd py/sharedfolders && export PYTHONPATH="$$PWD"/.. && python3 -m unittest -v
-	
+
+mypy:
+	cd py && export PYTHONPATH="$$PWD" && mypy --python-version 3.5 --strict -p sharedfolders
+
+test: unit mypy

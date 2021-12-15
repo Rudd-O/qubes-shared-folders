@@ -17,6 +17,7 @@ Source0:        https://github.com/Rudd-O/%{name}/archive/{%version}.tar.gz#/%{n
 BuildRequires:  make
 BuildRequires:  python3
 BuildRequires:  python3-mock
+BuildRequires:  python3-mypy
 BuildRequires:  desktop-file-utils
 Requires:       bash
 Requires:       python3
@@ -57,7 +58,14 @@ touch $RPM_BUILD_ROOT/%{_sysconfdir}/qubes/shared-folders/policy.db
 
 %check
 desktop-file-validate desktop/*.desktop
-make test
+python3 -c 'import sys
+if sys.version_info.major == 3 and sys.version_info.minor < 6:
+    sys.exit(1)
+' && {
+    make test
+} || {
+    make unit
+}
 if grep -r '@.*@' $RPM_BUILD_ROOT ; then
     echo "Check failed: files with AT identifiers appeared" >&2
     exit 1
