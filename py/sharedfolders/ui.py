@@ -3,7 +3,7 @@
 import os
 import re
 import subprocess
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, List
 
 import gi  # type: ignore
 
@@ -121,7 +121,7 @@ class AuthorizationDialog(object):
         self.prior_remember_active = None
         self.prior_remember_sensitive = None
 
-    def open_folder_share_manager(self, *unused_args):
+    def open_folder_share_manager(self, *unused_args: List[Any]) -> None:
         subprocess.call(["bash", "-c", "qvm-folder-share-manager & disown -h"])
 
     def block_selected(self, radio: Gtk.RadioButton) -> None:

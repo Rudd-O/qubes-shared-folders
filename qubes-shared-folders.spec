@@ -62,9 +62,9 @@ python3 -c 'import sys
 if sys.version_info.major == 3 and sys.version_info.minor < 6:
     sys.exit(1)
 ' && {
-    make test
+    make test || exit $?
 } || {
-    make unit
+    make unit || exit $?
 }
 if grep -r '@.*@' $RPM_BUILD_ROOT ; then
     echo "Check failed: files with AT identifiers appeared" >&2

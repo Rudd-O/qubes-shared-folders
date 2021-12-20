@@ -155,6 +155,8 @@ scratch.  If you want to test using prebuilt packages (for Fedora
 but note they will not be updated in the future, and I cannot guarantee
 their integrity at this time.*
 
+### Build and install `diod`
+
 First, build a [`diod`](https://github.com/Rudd-O/diod) RPM package
 (install the `munge-devel` and `ncurses-devel` packages first):
 
@@ -164,10 +166,17 @@ cd diod
 ./autogen.sh && ./configure --prefix=/usr && make dist && rpmbuild -ts *tar.gz
 ```
 
-Then, install this package on the template of the qube you plan to
-*share your files from*.
+Then, copy and install this package on the *template* of the qube you
+plan to *share your files from*.
 
-Now build RPM packages for this software:
+### Build and install the qube side of this software
+
+For this, you'll have to build the packages twice.  Once for your qubes'
+*template*, and once for the right Fedora version of your dom0 (Qubes OS
+4.0 uses Fedora 25 in dom0, while Qubes OS 4.1 uses Fedora 32).
+
+To build the packages for your template, run the following in your qube
+based on said template (or on a disposable qube):
 
 ```
 git clone https://github.com/Rudd-O/qubes-shared-folders
@@ -175,17 +184,87 @@ cd qubes-shared-folders
 make rpm
 ```
 
-Two RPMs will result:
+An RPM package will be deposited in the `qubes-shared-folders` directory,
+named `qubes-shared-folders-<version>-<release>.noarch.rpm`.  Copy and
+install it in the template of the qube you plan to *share your files from*,
+as well as the template of the qube you plan to *access your files in*
+(most likely they are the one and same qube template).
 
-1. `qubes-shared-folders-...noarch.rpm`
-2. `qubes-shared-folders-dom0-...noarch.rpm`
+### Build and install the dom0 side of this software
 
-Install the first one in the template of the qube you plan to
-*share your files from*, as well as the template of the qube
-you plan to *access your files in*.
+Of the two following subheadings, follow the instructions of only the
+one applicable to you.
 
-Install the second one in dom0.  This package contains policy
-(default `ask`) for the service.
+#### If you are running Qubes OS 4.1
 
-Now shut down all involved qubes, to ensure the installation takes.
-You don't need to shut down your computer or dom0.
+To build the packages for your dom0, first install Fedora Toolbox
+(`toolbox`) in the template of the qube where you were building the
+prior package.
+
+Once you have `toolbox` available in the qube where you were building,
+you can change into the directory `qubes-shared-folders` again, then
+instantiate a toolbox with the right Fedora version.  This terminal
+transcript will be useful:
+
+```
+[user@projects qubes-shared-folders]$ toolbox create -r 32  # creates the container
+Creating container fedora-toolbox-32: | Created container: fedora-toolbox-32
+Enter with: toolbox enter --release 32
+[user@projects qubes-shared-folders]$ toolbox enter --release 32 # enters the container
+# now we are going to install needed build dependencies inside the container
+⬢[user@toolbox qubes-shared-folders]$ sudo dnf install -y make rpm-build desktop-file-utils python3-mock python3-mypy
+[... DNF output omitted for brevity ...]
+⬢[user@toolbox qubes-shared-folders]$ make rpm  # builds the RPM
+[... make output omitted for brevity...]
+⬢[user@toolbox qubes-shared-folders]$ # you are now done
+```
+
+An RPM package will be deposited in the `qubes-shared-folders` directory,
+named `qubes-shared-folders-dom0-<version>-<release>.noarch.rpm`.  Copy
+it to dom0, and install it using `sudo rpm -ivh`.  This package contains
+service security policies (default `deny` for the file sharing service).
+
+You can now shut down the `toolbox` instance with command
+`toolbox rm --force fedora-toolbox-32`.
+
+#### If you are running Qubes OS 4.0
+
+There are no Fedora Toolbox images for Fedora 25, unfortunately, but you
+can deploy a `mock` jail on a disposable qube using `dnf` itself, with
+instructions similar to the following:
+
+```
+[user@disp9524 ~]$ git clone https://github.com/Rudd-O/qubes-shared-folders
+[... git output omitted for brevity ...]
+# Set up the jail.
+[user@disp9524 ~]$ sudo dnf install -y mock
+[... DNF output omitted for brevity ...]
+[user@disp9524 ~]$ sudo cp /etc/mock/fedora-33-x86_64.cfg /etc/mock/fedora-25-x86_64.cfg
+[user@disp9524 ~]$ sudo sed -i 's/33/25/' /etc/mock/fedora-25-x86_64.cfg
+[user@disp9524 ~]$ mock -r /etc/mock/fedora-25-x86_64.cfg install desktop-file-utils rpm-build python3-mock python3-mypy
+[... mock output omitted for brevity...]
+# Copy the source to the jail.
+[user@disp9524 ~]$ mock -r /etc/mock/fedora-25-x86_64.cfg --chroot "bash -c 'rm -rf /builddir'"
+[... mock output omitted for brevity...]
+[user@disp9524 ~]$ mock -r /etc/mock/fedora-25-x86_64.cfg --copyin qubes-shared-folders /builddir/qubes-shared-folders
+[... mock output omitted for brevity...]
+# Build
+[user@disp9524 ~]$ mock -r /etc/mock/fedora-25-x86_64.cfg --chroot "bash -c 'cd /builddir/qubes-shared-folders && make rpm'"
+[... make output omitted for brevity...]
+# Copy the results out.
+[user@disp9524 ~]$ rm -rf qubes-shared-folders
+[user@disp9524 ~]$ mock -r /etc/mock/fedora-25-x86_64.cfg --copyout /builddir/qubes-shared-folders qubes-shared-folders
+[... mock output omitted for brevity...]
+```
+
+An RPM package will be deposited in the `qubes-shared-folders` directory,
+named `qubes-shared-folders-dom0-<version>-<release>.noarch.rpm`.  Copy
+it to dom0, and install it using `sudo rpm -ivh`.  This package contains
+service security policies (default `deny` for the file sharing service).
+
+You can now power the disposable qube off.
+
+### Shut down all involved qubes
+
+Now shut down all involved qubes, to ensure the installation takes
+effect.  You don't need to shut down your computer or dom0.
