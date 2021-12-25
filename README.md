@@ -157,17 +157,33 @@ their integrity at this time.*
 
 ### Build and install `diod`
 
-First, build a [`diod`](https://github.com/Rudd-O/diod) RPM package
-(install the `munge-devel` and `ncurses-devel` packages first):
+First, build a [`diod`](https://github.com/Rudd-O/diod) RPM package.
+
+Before building, install the following dependencies using `dnf`:
+
+* `munge-devel`
+* `ncurses-devel`
+* `autoconf`
+* `automake`
+* `lua-devel`
+* `rpm-build`
+* `libattr-devel`
+* `libcap-devel`
+
+Here is how you build it:
 
 ```
 git clone https://github.com/Rudd-O/diod
 cd diod
 ./autogen.sh && ./configure --prefix=/usr && make dist && rpmbuild -ts *tar.gz
+# This will produce a source RPM you have to build now.
+# The source RPM will be stored in $HOME/rpmbuild .
+rpmbuild --rebuild $HOME/rpmbuild/SRPMS/diod*src.rpm
 ```
 
-Then, copy and install this package on the *template* of the qube you
-plan to *share your files from*.
+The result will produce a diod binary RPM in `$HOME/rpmbuild/RPMS/x86_64`.
+copy and install this package on the *template* of the qube you plan to
+*share your files from*.
 
 ### Build and install the qube side of this software
 
