@@ -191,6 +191,10 @@ For this, you'll have to build the packages twice.  Once for your qubes'
 *template*, and once for the right Fedora version of your dom0 (Qubes OS
 4.0 uses Fedora 25 in dom0, while Qubes OS 4.1 uses Fedora 32).
 
+Before building, install the following dependencies using `dnf`:
+* `python3-mock`
+* `python3-mypy`
+
 To build the packages for your template, run the following in your qube
 based on said template (or on a disposable qube):
 
