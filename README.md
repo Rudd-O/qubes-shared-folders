@@ -155,6 +155,9 @@ scratch.  If you want to test using prebuilt packages (for Fedora
 but note they will not be updated in the future, and I cannot guarantee
 their integrity at this time.*
 
+*Note: these assume a Fedora template and dom0.  If your template is
+Debian, see below.*
+
 ### Build and install `diod`
 
 First, build a [`diod`](https://github.com/Rudd-O/diod) RPM package.
@@ -209,6 +212,22 @@ named `qubes-shared-folders-<version>-<release>.noarch.rpm`.  Copy and
 install it in the template of the qube you plan to *share your files from*,
 as well as the template of the qube you plan to *access your files in*
 (most likely they are the one and same qube template).
+
+#### But what if I have a Debian template qube or Windows VM?
+
+*On Windows:* The 9P file system client is not implemented for Windows,
+so you won't be able to make that work there.
+
+*On Debian and derivatives*: the client package will work in a Debian VM
+(run `make install-client`) so long as you have the following Debian
+packages installed:
+
+* [desktop-file-utils](https://packages.debian.org/search?suite=default&section=all&arch=any&searchon=names&keywords=desktop-file-utils)
+* Python 3
+* [diod](https://packages.debian.org/search?searchon=sourcenames&keywords=diod)
+
+Pull requests are gladly welcome if you want to package the client
+for Debian.
 
 ### Build and install the dom0 side of this software
 
