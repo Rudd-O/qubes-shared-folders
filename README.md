@@ -149,11 +149,9 @@ security model, you are better off *not using this program*.
 ## Installation
 
 *Note: the following instructions show how to build the packages from
-scratch.  If you want to test using prebuilt packages (for Fedora
-34 on the template, and Fedora 25 / 32 on dom0), they are available
-[here](https://rudd-o.com/uploads/projects/files/qubes-shared-folders),
-but note they will not be updated in the future, and I cannot guarantee
-their integrity at this time.*
+scratch.  If you want to test using prebuilt packages (for the latest
+Fedora templates, and Fedora 25 / 32 on dom0), they are available
+[here](https://repo.rudd-o.com).*
 
 *Note: these assume a Fedora template and dom0.  If your template is
 Debian, see below.*
@@ -187,6 +185,11 @@ rpmbuild --rebuild $HOME/rpmbuild/SRPMS/diod*src.rpm
 The result will produce a diod binary RPM in `$HOME/rpmbuild/RPMS/x86_64`.
 copy and install this package on the *template* of the qube you plan to
 *share your files from*.
+
+*Note: if you have an error* that looks like
+`Illegal char '-' (0x2d) in: Version: 1.0.24.3-1-ga082a0a`,
+please file a ticket on this repository immediately.  This usually means
+I forgot to push the right annotated tag to the `diod` repository.
 
 ### Build and install the qube side of this software
 
