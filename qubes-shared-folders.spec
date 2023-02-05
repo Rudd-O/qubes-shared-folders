@@ -5,7 +5,7 @@
 %{!?python3_sitearch: %define python3_sitearch  %(python3 -c 'from distutils.sysconfig import get_python_lib; print(get_python_lib(1))')}
 
 Name:           qubes-shared-folders
-Version:        0.1.1
+Version:        0.1.2
 Release:        %{mybuildnumber}%{?dist}
 Summary:        Inter-VM folder sharing via Plan 9 filesystem
 BuildArch:      noarch
@@ -66,7 +66,7 @@ if sys.version_info.major == 3 and sys.version_info.minor < 6:
 } || {
     make unit || exit $?
 }
-if grep -r '@.*@' $RPM_BUILD_ROOT ; then
+if grep -r --exclude-dir=__pycache__ '@.*@' $RPM_BUILD_ROOT ; then
     echo "Check failed: files with AT identifiers appeared" >&2
     exit 1
 fi
