@@ -160,6 +160,11 @@ Debian, see below.*
 
 First, build a [`diod`](https://github.com/Rudd-O/diod) RPM package.
 
+*Pro tip: if you want to skip the build, just install the `diod`
+package on your template qube from https://repo.rudd-o.com/ .  Be
+aware that the packages are signed with a private key and, as such,
+you should verify their authenticity by other means.*
+
 Before building, install the following dependencies using `dnf`:
 
 * `munge-devel`
@@ -192,6 +197,11 @@ please file a ticket on this repository immediately.  This usually means
 I forgot to push the right annotated tag to the `diod` repository.
 
 ### Build and install the qube side of this software
+
+*Pro tip: if you want to skip the build, just install the following
+packages on your template qube from https://repo.rudd-o.com/ .  Be
+aware that the packages are signed with a private key and, as such,
+you should verify their authenticity by other means.*
 
 For this, you'll have to build the packages twice.  Once for your qubes'
 *template*, and once for the right Fedora version of your dom0 (Qubes OS
@@ -233,6 +243,11 @@ Pull requests are gladly welcome if you want to package the client
 for Debian.
 
 ### Build and install the dom0 side of this software
+
+*Pro tip: if you want to skip the build, just install the following
+packages on your Qubes dom0 from https://repo.rudd-o.com/ .  Be
+aware that the packages are signed with a private key and, as such,
+you should verify their authenticity by other means.*
 
 Of the two following subheadings, follow the instructions of only the
 one applicable to you.
