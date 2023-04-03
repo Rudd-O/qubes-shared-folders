@@ -38,7 +38,14 @@ fi
 # and signal to the caller that we are about to start diod.
 echo ok
 
-exec /usr/sbin/diod -f -r 0 -w 1 -n -H -e "$requested_folder" -S || {
+if /usr/sbin/diod --help 2>&1 | grep -q -- '-H' ; then
+    # Fedora diod.
+    nohostnamelookups=-H
+else
+    # Debian diod.  https://github.com/Rudd-O/qubes-shared-folders/issues/7
+    nohostnamelookups=
+fi
+exec /usr/sbin/diod -f -r 0 -w 1 -n $nohostnamelookups -e "$requested_folder" -S || {
     ret=$?
     echo "error: diod is not installed" >&2
     exit $ret
