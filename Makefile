@@ -53,6 +53,6 @@ unit:
 	cd py/sharedfolders && export PYTHONPATH="$$PWD"/.. && python3 -m unittest -v
 
 mypy:
-	cd py && export PYTHONPATH="$$PWD" && mypy --python-version 3.5 --strict -p sharedfolders
+	cd py && export PYTHONPATH="$$PWD" && mypy --python-version 3.11 --strict -p sharedfolders
 
 test: unit mypy
