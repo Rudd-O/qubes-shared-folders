@@ -252,7 +252,7 @@ you should verify their authenticity by other means.*
 Of the two following subheadings, follow the instructions of only the
 one applicable to you.
 
-#### If you are running Qubes OS 4.1
+#### If you are running Qubes OS 4.2
 
 To build the packages for your dom0, first install Fedora Toolbox
 (`toolbox`) in the template of the qube where you were building the
@@ -264,10 +264,10 @@ instantiate a toolbox with the right Fedora version.  This terminal
 transcript will be useful:
 
 ```
-[user@projects qubes-shared-folders]$ toolbox create -r 32  # creates the container
-Creating container fedora-toolbox-32: | Created container: fedora-toolbox-32
-Enter with: toolbox enter --release 32
-[user@projects qubes-shared-folders]$ toolbox enter --release 32 # enters the container
+[user@projects qubes-shared-folders]$ toolbox create -r 37  # creates the container
+Creating container fedora-toolbox-37: | Created container: fedora-toolbox-37
+Enter with: toolbox enter --release 37
+[user@projects qubes-shared-folders]$ toolbox enter --release 37 # enters the container
 # now we are going to install needed build dependencies inside the container
 ⬢[user@toolbox qubes-shared-folders]$ sudo dnf install -y make rpm-build desktop-file-utils python3-mock python3-mypy
 [... DNF output omitted for brevity ...]
@@ -282,44 +282,16 @@ it to dom0, and install it using `sudo rpm -ivh`.  This package contains
 service security policies (default `deny` for the file sharing service).
 
 You can now shut down the `toolbox` instance with command
-`toolbox rm --force fedora-toolbox-32`.
+`toolbox rm --force fedora-toolbox-37`.
 
-#### If you are running Qubes OS 4.0
+#### If you are running Qubes OS 4.1
 
-There are no Fedora Toolbox images for Fedora 25, unfortunately, but you
-can deploy a `mock` jail on a disposable qube using `dnf` itself, with
-instructions similar to the following:
+The instructions above work but you must use toolbox images for Fedora
+32 instead of Fedora 37.
 
-```
-[user@disp9524 ~]$ git clone https://github.com/Rudd-O/qubes-shared-folders
-[... git output omitted for brevity ...]
-# Set up the jail.
-[user@disp9524 ~]$ sudo dnf install -y mock
-[... DNF output omitted for brevity ...]
-[user@disp9524 ~]$ sudo cp /etc/mock/fedora-33-x86_64.cfg /etc/mock/fedora-25-x86_64.cfg
-[user@disp9524 ~]$ sudo sed -i 's/33/25/' /etc/mock/fedora-25-x86_64.cfg
-[user@disp9524 ~]$ mock -r /etc/mock/fedora-25-x86_64.cfg install desktop-file-utils rpm-build python3-mock python3-mypy
-[... mock output omitted for brevity...]
-# Copy the source to the jail.
-[user@disp9524 ~]$ mock -r /etc/mock/fedora-25-x86_64.cfg --chroot "bash -c 'rm -rf /builddir'"
-[... mock output omitted for brevity...]
-[user@disp9524 ~]$ mock -r /etc/mock/fedora-25-x86_64.cfg --copyin qubes-shared-folders /builddir/qubes-shared-folders
-[... mock output omitted for brevity...]
-# Build
-[user@disp9524 ~]$ mock -r /etc/mock/fedora-25-x86_64.cfg --chroot "bash -c 'cd /builddir/qubes-shared-folders && make rpm'"
-[... make output omitted for brevity...]
-# Copy the results out.
-[user@disp9524 ~]$ rm -rf qubes-shared-folders
-[user@disp9524 ~]$ mock -r /etc/mock/fedora-25-x86_64.cfg --copyout /builddir/qubes-shared-folders qubes-shared-folders
-[... mock output omitted for brevity...]
-```
+#### Qubes 4.0 users
 
-An RPM package will be deposited in the `qubes-shared-folders` directory,
-named `qubes-shared-folders-dom0-<version>-<release>.noarch.rpm`.  Copy
-it to dom0, and install it using `sudo rpm -ivh`.  This package contains
-service security policies (default `deny` for the file sharing service).
-
-You can now power the disposable qube off.
+*This is no longer supported.*
 
 ### Shut down all involved qubes
 
