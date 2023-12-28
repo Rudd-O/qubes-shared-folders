@@ -5,7 +5,7 @@
 %{!?python3_sitearch: %define python3_sitearch  %(python3 -c 'from distutils.sysconfig import get_python_lib; print(get_python_lib(1))')}
 
 Name:           qubes-shared-folders
-Version:        0.1.3
+Version:        0.2.0
 Release:        %{mybuildnumber}%{?dist}
 Summary:        Inter-VM folder sharing via Plan 9 filesystem
 BuildArch:      noarch
@@ -27,7 +27,7 @@ Requires:       diod
 %package dom0
 Summary:        Policy package for Qubes OS dom0s that arbitrates access to shared folders
 
-Requires:       qubes-core-dom0-linux
+Requires:       qubes-core-dom0-linux >= 4.1
 Requires:       python3
 Requires:       gobject-introspection
 Requires:       gtk3
@@ -80,9 +80,7 @@ fi
 %files dom0
 %attr(0644, root, root) %{_datadir}/%{name}/ui/*.ui
 %attr(0644, root, root) %{_datadir}/applications/*.desktop
-%config(noreplace) %attr(0664, root, qubes) %{_sysconfdir}/qubes-rpc/policy/ruddo.AuthorizeFolderAccess
-%config(noreplace) %attr(0664, root, qubes) %{_sysconfdir}/qubes-rpc/policy/ruddo.QueryFolderAuthorization
-%config(noreplace) %attr(0664, root, qubes) %{_sysconfdir}/qubes-rpc/policy/ruddo.ConnectToFolder
+%config(noreplace) %attr(0664, root, qubes) %{_sysconfdir}/qubes/policy.d/*-qubes-shared-folders.policy
 %dir %attr(2775, root, qubes) %{_sysconfdir}/qubes/shared-folders
 %ghost %config(noreplace) %attr(0664, root, qubes) %{_sysconfdir}/qubes/shared-folders/policy.db
 %attr(0755, root, root) %{_sysconfdir}/qubes-rpc/ruddo.AuthorizeFolderAccess

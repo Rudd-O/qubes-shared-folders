@@ -31,7 +31,7 @@ Then dom0 creates (much like `policy.RegisterArgument` does today) a policy `all
 
 The decision fingerprint is then returned to the client VM.
 
-At this point, the client VM can invoke `ruddo.ConnectToFolder+<fingerprint>` (which is normally default deny but has now been authorized).
+At this point, the client VM can invoke `ruddo.ConnectToFolder`` with argument `<fingerprint>` (which is normally default deny but has now been authorized).
 
 When the client service starts, it will contact the dom0 `ruddo.QueryFolderAuthorization` service, passing it the supplied (trusted) argument containing the fingerprint.  The dom0 service, using the argument on the persisted decision dictionary, will obtain the target folder that the client qube wanted to connect to, as well as whether the decision is one-time allow or always allow.
 

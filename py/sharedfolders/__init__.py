@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
-import base64
-import errno
+import collections
 import glob
 import hashlib
 from json import JSONEncoder
@@ -17,6 +16,7 @@ from typing import Optional, Tuple, Dict, Type, Any, List
 PATH_MAX = 4096
 # from qubes.vm package in dom0
 VM_REGEX = "^[a-zA-Z][a-zA-Z0-9_-]*$"
+CONNECT_RPCNAME = "ruddo.ConnectToFolder"
 
 
 def get_vm_list() -> List[str]:
@@ -309,15 +309,15 @@ class DecisionMatrix(Dict[str, Decision]):
             return None
 
 
-class _ConnectToFolderPolicy(object):
+class _LegacyConnectToFolderPolicy(object):
+    FOLDER = "/etc/qubes-rpc/policy"
+    FNTPL = os.path.join(FOLDER, CONNECT_RPCNAME + "+%s")
 
-    FNTPL = "/etc/qubes-rpc/policy/ruddo.ConnectToFolder+%s"
-
-    def ctf_policy(self, fingerprint: str) -> str:
+    def _ctf_policy(self, fingerprint: str) -> str:
         return self.FNTPL % fingerprint
 
     def grant_for(self, source: str, target: str, fingerprint: str) -> None:
-        fn = self.ctf_policy(fingerprint)
+        fn = self._ctf_policy(fingerprint)
         if os.path.isfile(fn):
             return
         logger.info("Creating %s", fn)
@@ -329,7 +329,7 @@ class _ConnectToFolderPolicy(object):
     def revoke_for(
         self, unused_source: str, unused_target: str, fingerprint: str
     ) -> None:
-        fn = self.ctf_policy(fingerprint)
+        fn = self._ctf_policy(fingerprint)
         try:
             os.unlink(fn)
             logger.info("Removing %s", fn)
@@ -348,4 +348,100 @@ class _ConnectToFolderPolicy(object):
             os.unlink(p)
 
 
-ConnectToFolderPolicy = _ConnectToFolderPolicy()
+class _NewConnectToFolderPolicy(_LegacyConnectToFolderPolicy):
+    FOLDER = "/etc/qubes/policy.d"
+    FNTPL = os.path.join(FOLDER, "79-qubes-shared-folders.policy")
+
+    def __init__(self) -> None:
+        old_policy_files = glob.glob(super().FNTPL % "*")
+        old_lines = []
+        for file in old_policy_files:
+            fingerprint = file.partition("+")[2]
+            with open(file) as f:
+                for line in f.read().splitlines():
+                    fields = [CONNECT_RPCNAME, "+" + fingerprint] + line.split()
+                    old_lines.append(" ".join(fields))
+        if old_lines:
+            try:
+                with open(self.FNTPL) as f:
+                    existing_lines = f.read().splitlines()
+            except FileNotFoundError:
+                existing_lines = []
+            complete_lines = (
+                ["# The following policies are migrated from old policy format."]
+                + old_lines
+                + existing_lines
+            )
+            logger.info("Migrating policy entries to %s", self.FNTPL)
+            with open(self.FNTPL, "w") as f:
+                f.write("\n".join(complete_lines))
+            for file in old_policy_files:
+                os.unlink(file)
+
+    def known_fingerprints(self) -> List[str]:
+        with open(self.FNTPL) as f:
+            text = f.read()
+        fingerprints = [
+            ln.split()[1][1:]
+            for ln in text.splitlines()
+            if ln.startswith(CONNECT_RPCNAME)
+        ]
+        return fingerprints
+
+    def grant_for(self, source: str, target: str, fingerprint: str) -> None:
+        with open(self.FNTPL) as f:
+            text = f.read()
+        fingerprints = self.known_fingerprints()
+        if fingerprint in fingerprints:
+            return
+        logger.info("Granting %s from %s to %s", fingerprint, source, target)
+        with open(self.FNTPL, "a") as f:
+            if text[-1] != "\n":
+                f.write("\n")
+            f.write(
+                "%s +%s %s %s allow\n" % (CONNECT_RPCNAME, fingerprint, source, target)
+            )
+
+    def revoke_for(
+        self, unused_source: str, unused_target: str, fingerprint: str
+    ) -> None:
+        with open(self.FNTPL) as f:
+            text = f.read()
+        policies = [ln for ln in text.splitlines(True)]
+        policies_without_fp = [
+            ln
+            for ln in policies
+            if (ln.startswith(CONNECT_RPCNAME) and ln.split()[1][1:] != fingerprint)
+            or not ln.startswith(CONNECT_RPCNAME)
+        ]
+        if len(policies) == len(policies_without_fp):
+            return
+        logger.info(
+            "Revoking %d rules mentioning %s",
+            fingerprint,
+            len(policies) - len(policies_without_fp),
+        )
+        with open(self.FNTPL, "w") as f:
+            f.write("".join(policies_without_fp))
+
+    def apply_policy_changes_from(self, matrix: DecisionMatrix) -> None:
+        """For each known share, add allow and remove deny.
+
+        Unknown shares are removed and default to deny.
+        """
+        existing_fingerprints = self.known_fingerprints()
+        acted_upon = collections.defaultdict(bool)
+        for fingerprint, decision in matrix.items():
+            action = self.grant_for if decision.response.is_allow() else self.revoke_for
+            action(decision.source, decision.target, fingerprint)
+            acted_upon[fingerprint] = True
+        for fingerprint in existing_fingerprints:
+            if not acted_upon[fingerprint]:
+                self.revoke_for("ignored", "ignored", fingerprint)
+
+
+ConnectToFolderPolicy = (
+    _NewConnectToFolderPolicy()
+    if os.path.isdir(_NewConnectToFolderPolicy.FOLDER)
+    else _LegacyConnectToFolderPolicy()
+)

@@ -30,12 +30,9 @@ install-client: install-py
 	install -Dm 755 etc/qubes-rpc/ruddo.ConnectToFolder -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/
 
 install-dom0: install-py
-	install -Dm 664 etc/qubes-rpc/policy/ruddo.ConnectToFolder -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/
-	install -Dm 664 etc/qubes-rpc/policy/ruddo.AuthorizeFolderAccess -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/
-	install -Dm 664 etc/qubes-rpc/policy/ruddo.QueryFolderAuthorization -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/
-	getent group qubes >/dev/null 2>&1 || exit 0 ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/ruddo.AuthorizeFolderAccess
-	getent group qubes>/dev/null 2>&1 || exit 0 ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/ruddo.ConnectToFolder
-	getent group qubes >/dev/null 2>&1 || exit 0 ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/policy/ruddo.QueryFolderAuthorization
+	install -Dm 664 etc/qubes/policy.d/80-*.policy -t $(DESTDIR)/$(SYSCONFDIR)/qubes/policy.d/
+	test -f $(DESTDIR)/$(SYSCONFDIR)/qubes/policy.d/79-*.policy || install -Dm 664 etc/qubes/policy.d/79-*.policy -t $(DESTDIR)/$(SYSCONFDIR)/qubes/policy.d/
+	getent group qubes >/dev/null 2>&1 || exit 0 ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes/policy.d/*.policy
 	install -Dm 755 etc/qubes-rpc/ruddo.AuthorizeFolderAccess -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/
 	install -Dm 755 etc/qubes-rpc/ruddo.QueryFolderAuthorization -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/
 	install -Dm 755 libexec/qvm-authorize-folder-access -t $(DESTDIR)/$(LIBEXECDIR)/
@@ -53,6 +50,6 @@ unit:
 	cd py/sharedfolders && export PYTHONPATH="$$PWD"/.. && python3 -m unittest -v
 
 mypy:
-	cd py && export PYTHONPATH="$$PWD" && mypy --python-version 3.11 --strict -p sharedfolders
+	cd py && export PYTHONPATH="$$PWD" && mypy --python-version 3.5 --strict -p sharedfolders
 
 test: unit mypy
