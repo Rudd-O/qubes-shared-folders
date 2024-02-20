@@ -32,7 +32,7 @@ install-client: install-py
 install-dom0: install-py
 	install -Dm 664 etc/qubes/policy.d/80-*.policy -t $(DESTDIR)/$(SYSCONFDIR)/qubes/policy.d/
 	test -f $(DESTDIR)/$(SYSCONFDIR)/qubes/policy.d/79-*.policy || install -Dm 664 etc/qubes/policy.d/79-*.policy -t $(DESTDIR)/$(SYSCONFDIR)/qubes/policy.d/
-	getent group qubes >/dev/null 2>&1 || exit 0 ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes/policy.d/*.policy
+	getent group qubes >/dev/null 2>&1 || exit 0 ; [ "$UID" = "0" ] || { echo "Not chgrping, not running as root" >&2 ; exit 0 ; } ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes/policy.d/*.policy
 	install -Dm 755 etc/qubes-rpc/ruddo.AuthorizeFolderAccess -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/
 	install -Dm 755 etc/qubes-rpc/ruddo.QueryFolderAuthorization -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/
 	install -Dm 755 libexec/qvm-authorize-folder-access -t $(DESTDIR)/$(LIBEXECDIR)/
@@ -41,7 +41,7 @@ install-dom0: install-py
 	install -Dm 644 desktop/*.desktop -t $(DESTDIR)/$(DATADIR)/applications/
 	mkdir -p $(DESTDIR)/$(SYSCONFDIR)/qubes/shared-folders
 	chmod 2775 $(DESTDIR)/$(SYSCONFDIR)/qubes/shared-folders
-	getent group qubes >/dev/null 2>&1 || exit 0 ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes/shared-folders
+	getent group qubes >/dev/null 2>&1 || exit 0 ; [ "$UID" = "0" ] || { echo "Not chgrping, not running as root" >&2 ; exit 0 ; } ; chgrp qubes $(DESTDIR)/$(SYSCONFDIR)/qubes/shared-folders
 
 black:
 	grep "^#!/usr/bin/python3" -r . | cut -d : -f 1 | sort | uniq | xargs -n1 black

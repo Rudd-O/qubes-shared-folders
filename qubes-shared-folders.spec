@@ -5,7 +5,7 @@
 %{!?python3_sitearch: %define python3_sitearch  %(python3 -c 'from distutils.sysconfig import get_python_lib; print(get_python_lib(1))')}
 
 Name:           qubes-shared-folders
-Version:        0.2.0
+Version:        0.2.1
 Release:        %{mybuildnumber}%{?dist}
 Summary:        Inter-VM folder sharing via Plan 9 filesystem
 BuildArch:      noarch
