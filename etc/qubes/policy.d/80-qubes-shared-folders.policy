@@ -1,11 +1,11 @@
 ## This policy allows VMs to ask for share folder authorization.
-ruddo.AuthorizeFolderAccess * $anyvm dom0 allow
-ruddo.AuthorizeFolderAccess * $anyvm $anyvm deny
+ruddo.AuthorizeFolderAccess * @anyvm dom0 allow
+ruddo.AuthorizeFolderAccess * @anyvm @anyvm deny
 
 ## This policy is used by VMs to verify folder authorization.
 ## Do not change this or add policy -- this is managed by qubes-shared-folders.
-ruddo.ConnectToFolder * $anyvm $anyvm deny
+ruddo.ConnectToFolder * @anyvm @anyvm deny
 
 ## This policy allows VMs to ask for share folder authorization.
-ruddo.QueryFolderAuthorization * $anyvm dom0 allow
-ruddo.QueryFolderAuthorization * $anyvm $anyvm deny
+ruddo.QueryFolderAuthorization * @anyvm dom0 allow
+ruddo.QueryFolderAuthorization * @anyvm @anyvm deny
