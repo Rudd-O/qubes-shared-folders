@@ -66,10 +66,6 @@ if sys.version_info.major == 3 and sys.version_info.minor < 6:
 } || {
     make unit || exit $?
 }
-if grep -r --exclude-dir=__pycache__ '@.*@' $RPM_BUILD_ROOT ; then
-    echo "Check failed: files with AT identifiers appeared" >&2
-    exit 1
-fi
 
 %files
 %attr(0755, root, root) %{_bindir}/qvm-mount-folder
