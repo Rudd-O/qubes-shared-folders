@@ -4,3 +4,8 @@
 *.pyc
 *~
 /.mypy_cache/
+
+
+# Added by cargo
+
+/target

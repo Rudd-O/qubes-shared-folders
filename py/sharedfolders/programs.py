@@ -282,7 +282,7 @@ def QvmMountFolder() -> int:
     stdin_for_write.write(folder_encoded + b"\n")
     response = stdout_for_read.read(3).decode("utf-8").rstrip()
     if response == "ok":
-        # Proceed.  We have received authorization and diod has
+        # Proceed.  We have received authorization and qfsd has
         # already started on the other side.
         pass
     elif response == "":

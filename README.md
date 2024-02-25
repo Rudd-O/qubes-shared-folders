@@ -10,10 +10,10 @@ We have some [to-do items](./TODO.md) which we'd love your help with!
 
 The programs in this project collaborate together to allow a qube
 to *mount* a folder in another qube, using the Plan 9 file system
-as a transport mechanism, with `diod` (a Plan 9 userspace server)
-running on the server qube, and the `v9fs` kernel file system module
-on the client qube.  These two components talk over the Qubes RPC
-mechanism.
+as a transport mechanism, with `qfsd` (a Rust-based Plan 9 userspace
+server, built within this project) running on the server qube, and
+the `v9fs` kernel file system module on the client qube.  These two
+components communicate with each other via the Qubes RPC mechanism.
 
 ## Usage
 
@@ -111,7 +111,9 @@ on, using the XDG autostart facility.
 
 For comparison:
 
-* `diod` raw C language line count: *40 thousand*
+* `qfsd` a few dozen lines, plus 1300 lines for the server portion
+  of the Rust `rust-p9` library, plus 1600 lines for the protocol
+  portion of the `rust-p9` library.
 * `samba` raw C / C++ language line count: **over 2 million**
 * NFS' and rsync's line counts are homework for the reader.
 
@@ -120,7 +122,7 @@ For comparison:
 When authorized, the client qube initiates a Qubes RPC connection to
 the server qube, asking it to share a specific folder (which must
 exist).  If the RPC mechanism authorizes it (by prompting you), then
-the server qube starts a `diod` instance, and the client uses the
+the server qube starts a `qfsd` instance, and the client uses the
 established I/O channel to mount the shared folder onto a folder of
 its file system tree.
 
@@ -128,91 +130,56 @@ The full design is documented [here](./doc/authorization-design.md).
 
 ## Security considerations
 
-* There is currently no way to control *which* folders of the server
-  qube can be requested by client qubes.  In principle this should
-  be doable because `diod` is able to export only a subtree of any
-  file system hierarchy.
 * A compromise of the client qube could be used to escalate into a
-  compromise of the `diod` daemon running on the server qube -- in
+  compromise of the `qfsd` daemon running on the server qube -- in
   which case the server qube can be considered compromised.  The
-  converse case is possible as well.
-  In other words: the client qube trusts that `diod` (on the server)
-  will not send malicious data back, and the server qube trusts that the
-  `v9fs` kernel module on the client qube will not send malicious data.
-  This is an inherent risk of running a client/server setup that uses
-  a low-level binary protocol and two sides (a client and a server),
-  whether it be Git, SSH, or any other protocol.
+  converse case is possible as well.  Admittedly, this is hard because
+  the server is written in a memory-safe language.
+* A compromise of the server qube (and therefore `qfsd` could be used
+  to exploit the kernel of any client qubes.  In other words: the client
+  qube trusts that `qfsd` (on the server) will not send malicious data
+  back to the `v9fs` kernel module of the client.
+
+These are inherent risks of running a client/server setup that uses a
+low-level binary protocol and two sides (a client and a server), whether
+it be Git, SSH, or any other protocol.
 
 If these security considerations cannot be accommodated by your
 security model, you are better off *not using this program*.
 
 ## Installation
 
-*Note: the following instructions show how to build the packages from
-scratch.  If you want to test using prebuilt packages (for the latest
-Fedora templates, and Fedora 25 / 32 on dom0), they are available
-[here](https://repo.rudd-o.com).*
+### From packages
 
-*Note: these assume a Fedora template and dom0.  If your template is
-Debian, see below.*
+If you want to test using prebuilt packages, they are available
+[here](https://repo.rudd-o.com) for the latest Fedora templates, and in
+folder `q4.2` on dom0.*  Be aware that the packages are signed with a
+private key and, as such, you must currently trust their authenticity.
 
-### Build and install `diod`
+If you use these packages to install `qubes-network-server` in your template
+qube, and `qubes-shared-folders-dom0` in your dom0, you don't need to follow
+the build and installation instructions below.
 
-First, build a [`diod`](https://github.com/Rudd-O/diod) RPM package.
+After installing the packages on your template and dom0, stop the
+template, and shut down all qubes you plan to use this software on.
 
-*Pro tip: if you want to skip the build, just install the `diod`
-package on your template qube from https://repo.rudd-o.com/ .  Be
-aware that the packages are signed with a private key and, as such,
-you should verify their authenticity by other means.*
+*Updated packages are no longer available for Qubes OS 4.1.*
 
-Before building, install the following dependencies using `dnf`:
-
-* `munge-devel`
-* `ncurses-devel`
-* `autoconf`
-* `automake`
-* `lua-devel`
-* `rpm-build`
-* `libattr-devel`
-* `libcap-devel`
-
-Here is how you build it:
-
-```
-git clone https://github.com/Rudd-O/diod
-cd diod
-./autogen.sh && ./configure --prefix=/usr && make dist && rpmbuild -ts *tar.gz
-# This will produce a source RPM you have to build now.
-# The source RPM will be stored in $HOME/rpmbuild .
-rpmbuild --rebuild $HOME/rpmbuild/SRPMS/diod*src.rpm
-```
-
-The result will produce a diod binary RPM in `$HOME/rpmbuild/RPMS/x86_64`.
-copy and install this package on the *template* of the qube you plan to
-*share your files from*.
-
-*Note: if you have an error* that looks like
-`Illegal char '-' (0x2d) in: Version: 1.0.24.3-1-ga082a0a`,
-please file a ticket on this repository immediately.  This usually means
-I forgot to push the right annotated tag to the `diod` repository.
-
-### Build and install the qube side of this software
+### Build and install the software
 
 *Pro tip: if you want to skip the build, just install the following
-packages on your template qube from https://repo.rudd-o.com/ .  Be
-aware that the packages are signed with a private key and, as such,
-you should verify their authenticity by other means.*
+packages on your template qube from https://repo.rudd-o.com/ .
 
 For this, you'll have to build the packages twice.  Once for your qubes'
 *template*, and once for the right Fedora version of your dom0 (Qubes OS
-4.0 uses Fedora 25 in dom0, while Qubes OS 4.1 uses Fedora 32).
+4.2 uses Fedora 37 in dom0, while Qubes OS 4.1 uses Fedora 32).
 
-Before building, install the following dependencies using `dnf`:
-* `python3-mock`
-* `python3-mypy`
+### Build and install the template side of this software
 
-To build the packages for your template, run the following in your qube
-based on said template (or on a disposable qube):
+To build the packages for your template, start a disposable qube based on
+that template.
+
+In the disposable qube, run
 
 ```
 git clone https://github.com/Rudd-O/qubes-shared-folders
@@ -220,34 +187,34 @@ cd qubes-shared-folders
 make rpm
 ```
 
+You may be missing some dependencies.  Make sure to install them within
+the disposable qube.
+
 An RPM package will be deposited in the `qubes-shared-folders` directory,
-named `qubes-shared-folders-<version>-<release>.noarch.rpm`.  Copy and
-install it in the template of the qube you plan to *share your files from*,
-as well as the template of the qube you plan to *access your files in*
-(most likely they are the one and same qube template).
+named `qubes-shared-folders-<version>-<release>.noarch.rpm`.
+
+Copy the RPM package to your template, and install it there.
+
+Keep the disposable qube around.
 
 #### But what if I have a Debian template qube or Windows VM?
 
-*On Windows:* The 9P file system client is not implemented for Windows,
-so you won't be able to make that work there.
+*On Windows:* The 9P file system client is in principle available as a driver
+for Windows, but the Qubes-specific authorization mechanisms are not
+implemented, so you won't be able to make that work there.
 
-*On Debian and derivatives*: the client package will work in a Debian VM
-(run `make install-client`) so long as you have the following Debian
-packages installed:
+*On Debian and derivatives*: the client/server package will work in a Debian
+VM correctly, provided everything is properly installed.  From a copy of the
+source in a disposable VM, run
+`make install-client install-server DESTDIR=/tmp` to deploy everything to
+`/tmp` (causing the necessary binaries to be built), then copy *the source
+tree* to a folder in your template (preserving timestamps), and then run
+`make install-client install-server DESTDIR=/usr` within that folder of
+your template.  Note that this will modify your template's root file system.
 
-* [desktop-file-utils](https://packages.debian.org/search?suite=default&section=all&arch=any&searchon=names&keywords=desktop-file-utils)
-* Python 3
-* [diod](https://packages.debian.org/search?searchon=sourcenames&keywords=diod)
-
-Pull requests are gladly welcome if you want to package the client
-for Debian.
+Pull requests are gladly welcome to enable packaging the client for Debian.
 
 ### Build and install the dom0 side of this software
-
-*Pro tip: if you want to skip the build, just install the following
-packages on your Qubes dom0 from https://repo.rudd-o.com/ .  Be
-aware that the packages are signed with a private key and, as such,
-you should verify their authenticity by other means.*
 
 Of the two following subheadings, follow the instructions of only the
 one applicable to you.
@@ -255,19 +222,18 @@ one applicable to you.
 #### If you are running Qubes OS 4.2
 
 To build the packages for your dom0, first install Fedora Toolbox
-(`toolbox`) in the template of the qube where you were building the
-prior package.
+(`toolbox`) in the disposable qube you were were building the prior package
+in.  `dnf install -y toolbox` does the trick.
 
-Once you have `toolbox` available in the qube where you were building,
-you can change into the directory `qubes-shared-folders` again, then
-instantiate a toolbox with the right Fedora version.  This terminal
-transcript will be useful:
+Once you have `toolbox` available, change into the `qubes-shared-folders`
+folder again, then instantiate a toolbox with the right Fedora version.
+This terminal transcript will be useful:
 
 ```
-[user@projects qubes-shared-folders]$ toolbox create -r 37  # creates the container
+[user@disp9999 qubes-shared-folders]$ toolbox create -r 37  # creates the container
 Creating container fedora-toolbox-37: | Created container: fedora-toolbox-37
 Enter with: toolbox enter --release 37
-[user@projects qubes-shared-folders]$ toolbox enter --release 37 # enters the container
+[user@disp9999 qubes-shared-folders]$ toolbox enter --release 37 # enters the container
 # now we are going to install needed build dependencies inside the container
 ⬢[user@toolbox qubes-shared-folders]$ sudo dnf install -y make rpm-build desktop-file-utils python3-mock python3-mypy
 [... DNF output omitted for brevity ...]
@@ -276,13 +242,16 @@ Enter with: toolbox enter --release 37
 ⬢[user@toolbox qubes-shared-folders]$ # you are now done
 ```
 
-An RPM package will be deposited in the `qubes-shared-folders` directory,
-named `qubes-shared-folders-dom0-<version>-<release>.noarch.rpm`.  Copy
-it to dom0, and install it using `sudo rpm -ivh`.  This package contains
-service security policies (default `deny` for the file sharing service).
+If you are missing dependencies, again, install them *within the toolbox*
+and retry the build.
 
-You can now shut down the `toolbox` instance with command
-`toolbox rm --force fedora-toolbox-37`.
+An RPM package will be deposited in the `qubes-shared-folders` directory,
+named `qubes-shared-folders-dom0-<version>-<release>.noarch.rpm`.  This
+package contains service security policies (default `deny` for the file
+sharing service) and authorization services for inter-VM file system sharing.
+Copy it to dom0, and install it using `sudo rpm -ivh`.
+
+You can now shut down the disposable qube.
 
 #### If you are running Qubes OS 4.1
 

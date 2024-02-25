@@ -29,6 +29,12 @@ install-client: install-py
 	install -Dm 755 bin/qvm-mount-folder -t $(DESTDIR)/$(BINDIR)/
 	install -Dm 755 etc/qubes-rpc/ruddo.ConnectToFolder -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/
 
+target/release/qfsd: src/main.rs Cargo.toml Cargo.lock
+	cargo build --release
+
+install-server: target/release/qfsd
+	install -Dm 755 target/release/qfsd -t $(DESTDIR)/$(BINDIR)/
+
 install-dom0: install-py
 	install -Dm 664 etc/qubes/policy.d/80-*.policy -t $(DESTDIR)/$(SYSCONFDIR)/qubes/policy.d/
 	test -f $(DESTDIR)/$(SYSCONFDIR)/qubes/policy.d/79-*.policy || install -Dm 664 etc/qubes/policy.d/79-*.policy -t $(DESTDIR)/$(SYSCONFDIR)/qubes/policy.d/

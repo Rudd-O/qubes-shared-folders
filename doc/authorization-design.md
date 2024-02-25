@@ -27,7 +27,7 @@ dom0 can then pop up a dialog (shown above) explicitly designed for the purpose 
 
 If the user accepts this, then the decision data will be stored in dom0, on a dictionary keyed by the first 64 characters of the SHA256 hash of (origin, target, folder) — we will call this hash the decision fingerprint.
 
-Then dom0 creates (much like `policy.RegisterArgument` does today) a policy `allow` element (based on the decision the user made) that permits the client qube to access the server qube's `ruddo.ConnectToFolder` service (in charge of establishing the `diod` server-side of the file share service) but *only when the correct argument is supplied*.
+Then dom0 creates (much like `policy.RegisterArgument` does today) a policy `allow` element (based on the decision the user made) that permits the client qube to access the server qube's `ruddo.ConnectToFolder` service (in charge of establishing the `qfsd` server-side of the file share service) but *only when the correct argument is supplied*.
 
 The decision fingerprint is then returned to the client VM.
 
@@ -37,7 +37,7 @@ When the client service starts, it will contact the dom0 `ruddo.QueryFolderAutho
 
 The dom0 service responds to the client qube which folder this connection is allowed to mount.  If the decision was a one-time allow decision, then the dom0 service immediately deletes the corresponding policy that permitted the server-to-client access that one time.  This is expected to be safe since, at that point, the connection between the server and the client has already been established.
 
-Having obtained the necessary pieces of the puzzle, all verified by a trusted component, the client can then safely establish the `diod` session that the server expects.
+Having obtained the necessary pieces of the puzzle, all verified by a trusted component, the client can then safely establish the `qfsd` session that the server expects.
 
 If dom0, however, replies to the query folder authorization RPC from the client with a `NAK`, then the client service can simply shut down and leave the server qube cold.
 

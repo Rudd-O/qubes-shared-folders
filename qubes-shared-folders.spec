@@ -22,7 +22,6 @@ BuildRequires:  desktop-file-utils
 Requires:       bash
 Requires:       python3
 Requires:       qubes-core-agent-qrexec
-Requires:       diod
 
 %package dom0
 Summary:        Policy package for Qubes OS dom0s that arbitrates access to shared folders
@@ -84,7 +83,7 @@ if sys.version_info.major == 3 and sys.version_info.minor < 6:
 %attr(0755, root, root) %{_libexecdir}/qvm-authorize-folder-access
 %attr(0644, root, root) %{python3_sitearch}/sharedfolders/*
 %attr(0755, root, root) %{_bindir}/qvm-folder-share-manager
-%doc README.md TODO.md doc
+%doc README.md TODO.md doc src/test-qfsd-mount.py
 
 %changelog
 * Sat Dec 11 2021 Manuel Amador (Rudd-O) <rudd-o@rudd-o.com>

@@ -35,18 +35,11 @@ if [ ! -d "$requested_folder" ] ; then
 fi
 # Good news!  The folder exists, and is within the scope of the
 # permissions that have been granted to the caller.  We proceed
-# and signal to the caller that we are about to start diod.
+# and signal to the caller that we are about to start qfsd.
 echo ok
 
-if /usr/sbin/diod --help 2>&1 | grep -q -- '-H' ; then
-    # Fedora diod.
-    nohostnamelookups=-H
-else
-    # Debian diod.  https://github.com/Rudd-O/qubes-shared-folders/issues/7
-    nohostnamelookups=
-fi
-exec /usr/sbin/diod -f -r 0 -w 1 -n $nohostnamelookups -e "$requested_folder" -S || {
+exec /usr/bin/qfsd 0 1 "$requested_folder" || {
     ret=$?
-    echo "error: diod is not installed" >&2
+    echo "error: qfsd is not installed" >&2
     exit $ret
 }
