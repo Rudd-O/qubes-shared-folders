@@ -2,8 +2,6 @@
 
 %define mybuildnumber %{?build_number}%{?!build_number:1}
 
-%{!?python3_sitearch: %define python3_sitearch  %(python3 -c 'from distutils.sysconfig import get_python_lib; print(get_python_lib(1))')}
-
 Name:           qubes-shared-folders
 Version:        0.3.0
 Release:        %{mybuildnumber}%{?dist}
@@ -20,6 +18,7 @@ BuildRequires:  python3-mock
 BuildRequires:  python3-mypy
 BuildRequires:  desktop-file-utils
 BuildRequires:  cargo-rpm-macros >= 24
+BuildRequires:  python3-rpm-macros
 Requires:       bash
 Requires:       python3
 Requires:       qubes-core-agent-qrexec
@@ -31,6 +30,7 @@ Requires:       qubes-core-dom0-linux >= 4.1
 Requires:       python3
 Requires:       gobject-introspection
 Requires:       gtk3
+BuildArch:      noarch
 
 %description
 This package offers a collection of programs that allow users to

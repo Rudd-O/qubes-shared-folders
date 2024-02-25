@@ -149,120 +149,31 @@ security model, you are better off *not using this program*.
 
 ## Installation
 
-### From packages
+The recommended way to install the various components is via pre-built RPM
+packages.  The packages are available for download here:
 
-If you want to test using prebuilt packages, they are available
-[here](https://repo.rudd-o.com) for the latest Fedora templates, and in
-folder `q4.2` on dom0.*  Be aware that the packages are signed with a
-private key and, as such, you must currently trust their authenticity.
+* Fedora templates:
+  * 38: https://repo.rudd-o.com/unstable/fc38/packages/
+  * 39: https://repo.rudd-o.com/unstable/fc39/packages/
+  * 40: https://repo.rudd-o.com/unstable/fc40/packages/
+* Qubes OS dom0:
+  * 4.2: https://repo.rudd-o.com/unstable/q4.2/packages/
+  * 4.1: packages aren't built for Qubes OS 4.1 anymore.
 
-If you use these packages to install `qubes-network-server` in your template
-qube, and `qubes-shared-folders-dom0` in your dom0, you don't need to follow
-the build and installation instructions below.
+Download and install to your template:
 
-After installing the packages on your template and dom0, stop the
-template, and shut down all qubes you plan to use this software on.
+* the latest `qubes-shared-folders` `x86_64` package
 
-*Updated packages are no longer available for Qubes OS 4.1.*
+Download and install to your dom0:
 
-### Build and install the software
+* the latest `qubes-shared-folders-dom0` `noarch` package
 
-*Pro tip: if you want to skip the build, just install the following
-packages on your template qube from https://repo.rudd-o.com/ .
+Shut off your template qube and restart any qubes you plan to share folders
+to or from.
 
-For this, you'll have to build the packages twice.  Once for your qubes'
-*template*, and once for the right Fedora version of your dom0 (Qubes OS
-4.2 uses Fedora 37 in dom0, while Qubes OS 4.1 uses Fedora 32).
+*In the future, the signature for the built RPM packages will be made
+available to the public.  For now, you must trust that the package server
+is under my control.*
 
-### Build and install the template side of this software
-
-To build the packages for your template, start a disposable qube based on
-that template.
-
-In the disposable qube, run
-
-```
-git clone https://github.com/Rudd-O/qubes-shared-folders
-cd qubes-shared-folders
-make rpm
-```
-
-You may be missing some dependencies.  Make sure to install them within
-the disposable qube.
-
-An RPM package will be deposited in the `qubes-shared-folders` directory,
-named `qubes-shared-folders-<version>-<release>.x86_64.rpm`.
-
-Copy the RPM package to your template, and install it there.
-
-Keep the disposable qube around.
-
-#### But what if I have a Debian template qube or Windows VM?
-
-*On Windows:* The 9P file system client is in principle available as a driver
-for Windows, but the Qubes-specific authorization mechanisms are not
-implemented, so you won't be able to make that work there.
-
-*On Debian and derivatives*: the client/server package will work in a Debian
-VM correctly, provided everything is properly installed.  From a copy of the
-source in a disposable VM, run
-`make install-client install-server DESTDIR=/tmp` to deploy everything to
-`/tmp` (causing the necessary binaries to be built), then copy *the source
-tree* to a folder in your template (preserving timestamps), and then run
-`make install-client install-server DESTDIR=/usr` within that folder of
-your template.  Note that this will modify your template's root file system.
-
-Pull requests are gladly welcome to enable packaging the client for Debian.
-
-### Build and install the dom0 side of this software
-
-Of the two following subheadings, follow the instructions of only the
-one applicable to you.
-
-#### If you are running Qubes OS 4.2
-
-To build the packages for your dom0, first install Fedora Toolbox
-(`toolbox`) in the disposable qube you were were building the prior package
-in.  `dnf install -y toolbox` does the trick.
-
-Once you have `toolbox` available, change into the `qubes-shared-folders`
-folder again, then instantiate a toolbox with the right Fedora version.
-This terminal transcript will be useful:
-
-```
-[user@disp9999 qubes-shared-folders]$ toolbox create -r 37  # creates the container
-Creating container fedora-toolbox-37: | Created container: fedora-toolbox-37
-Enter with: toolbox enter --release 37
-[user@disp9999 qubes-shared-folders]$ toolbox enter --release 37 # enters the container
-# now we are going to install needed build dependencies inside the container
-⬢[user@toolbox qubes-shared-folders]$ sudo dnf install -y make rpm-build desktop-file-utils python3-mock python3-mypy
-[... DNF output omitted for brevity ...]
-⬢[user@toolbox qubes-shared-folders]$ make rpm  # builds the RPM
-[... make output omitted for brevity...]
-⬢[user@toolbox qubes-shared-folders]$ # you are now done
-```
-
-If you are missing dependencies, again, install them *within the toolbox*
-and retry the build.
-
-An RPM package will be deposited in the `qubes-shared-folders` directory,
-named `qubes-shared-folders-dom0-<version>-<release>.x86_64.rpm`.  This
-package contains service security policies (default `deny` for the file
-sharing service) and authorization services for inter-VM file system sharing.
-Copy it to dom0, and install it using `sudo rpm -ivh`.
-
-You can now shut down the disposable qube.
-
-#### If you are running Qubes OS 4.1
-
-The instructions above work but you must use toolbox images for Fedora
-32 instead of Fedora 37.
-
-#### Qubes 4.0 users
-
-*This is no longer supported.*
-
-### Shut down all involved qubes
-
-Now shut down all involved qubes, to ensure the installation takes
-effect.  You don't need to shut down your computer or dom0.
+If your only option is to build from source, please see the [building from
+source instructions](doc/building-from-source.md).
