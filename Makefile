@@ -9,9 +9,9 @@ SITEPACKAGES=$(shell python3 -c "from distutils.sysconfig import get_python_lib;
 .PHONY: clean install-client install-dom0 install-py black test mypy unit
 
 clean:
-	find -name '*~' -print0 | xargs -0 rm -fv
+	find -name '*~' -print0 | xargs -0 rm -f
 	find -name '__pycache__' -print0 | xargs -0 rm -rf
-	rm -fv *.tar.gz *.rpm
+	rm -fr *.tar.gz *.rpm target
 
 dist: clean
 	excludefrom= ; test -f .gitignore && excludefrom=--exclude-from=.gitignore ; DIR=$(PROGNAME)-`awk '/^Version:/ {print $$2}' $(PROGNAME).spec` && FILENAME=$$DIR.tar.gz && tar cvzf "$$FILENAME" --exclude="$$FILENAME" --exclude=.git --exclude=.gitignore $$excludefrom --transform="s|^|$$DIR/|" --show-transformed *
@@ -29,7 +29,7 @@ install-client: install-py
 	install -Dm 755 bin/qvm-mount-folder -t $(DESTDIR)/$(BINDIR)/
 	install -Dm 755 etc/qubes-rpc/ruddo.ConnectToFolder -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/
 
-target/release/qfsd: src/main.rs Cargo.toml Cargo.lock
+target/release/qfsd: src/main.rs
 	cargo build --release
 
 install-server: target/release/qfsd
@@ -53,9 +53,9 @@ black:
 	grep "^#!/usr/bin/python3" -r . | cut -d : -f 1 | sort | uniq | xargs -n1 black
 
 unit:
-	cd py/sharedfolders && export PYTHONPATH="$$PWD"/.. && python3 -m unittest -v
+	PYTHONPATH="$$PWD"/py python3 -m pytest -v
 
 mypy:
-	cd py && export PYTHONPATH="$$PWD" && mypy --python-version 3.10 --strict -p sharedfolders
+	PYTHONPATH="$$PWD"/py MYPYPATH="$$PWD"/py mypy --python-version 3.10 --strict -p sharedfolders
 
 test: unit mypy

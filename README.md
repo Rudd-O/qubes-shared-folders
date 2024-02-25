@@ -191,7 +191,7 @@ You may be missing some dependencies.  Make sure to install them within
 the disposable qube.
 
 An RPM package will be deposited in the `qubes-shared-folders` directory,
-named `qubes-shared-folders-<version>-<release>.noarch.rpm`.
+named `qubes-shared-folders-<version>-<release>.x86_64.rpm`.
 
 Copy the RPM package to your template, and install it there.
 
@@ -246,7 +246,7 @@ If you are missing dependencies, again, install them *within the toolbox*
 and retry the build.
 
 An RPM package will be deposited in the `qubes-shared-folders` directory,
-named `qubes-shared-folders-dom0-<version>-<release>.noarch.rpm`.  This
+named `qubes-shared-folders-dom0-<version>-<release>.x86_64.rpm`.  This
 package contains service security policies (default `deny` for the file
 sharing service) and authorization services for inter-VM file system sharing.
 Copy it to dom0, and install it using `sudo rpm -ivh`.
