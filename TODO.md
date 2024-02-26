@@ -1,5 +1,6 @@
 Things I would love to get addressed (of course, other suggestions and improvements welcome):
 
+* End-to-end conformance tests of `qfsd` using a well-known file system tester or testing framework.
 * Small CLI interface to allow / deny things permanently, then perform the necessary policy changes
 * Small Salt module to permit the same as above
 * Revise argument passing using 4.1 style instead of base64 encoding over pipes
