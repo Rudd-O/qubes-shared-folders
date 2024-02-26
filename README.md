@@ -135,7 +135,7 @@ The full design is documented [here](./doc/authorization-design.md).
   which case the server qube can be considered compromised.  The
   converse case is possible as well.  Admittedly, this is hard because
   the server is written in a memory-safe language.
-* A compromise of the server qube (and therefore `qfsd` could be used
+* A compromise of the server qube (and therefore `qfsd`) could be used
   to exploit the kernel of any client qubes.  In other words: the client
   qube trusts that `qfsd` (on the server) will not send malicious data
   back to the `v9fs` kernel module of the client.
