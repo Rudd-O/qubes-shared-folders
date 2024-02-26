@@ -17,4 +17,8 @@ Here is how qrexec policy prompt is doing it:
 * Add a `mount.qvm` command so that the `mount` command can be used normally (figure out how to make it work as non-root, although that should not be very difficult)
 * Add a `qvm-mount` command, because the command `qvm-mount-folder` seems dumbly named in retrospect
 * Performance improvements (it can be slow to browse large folders from a client qube)
+  * Caching seems impossible to resolve because Plan 9 file system servers do not have a way to invalidate client caches, as
+    1. the kernel has no way to inform the daemon that a cache is invalid
+    2. the protocol itself has no way of informing the client that a cache is to be invalidated
+  * This seems to be a general issue with client-server file protocols like SAMBA; it is not clear to me if or how smbd tells the client that a certain inode or a region from a file has been changed on the server, so the corresponding cached object on the client should be deemed invalid
 * Propose inclusion in default Qubes / in Qubes extra gear
