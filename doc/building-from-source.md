@@ -11,7 +11,7 @@ terminal program to launch, choose the `gnome-terminal` Terminal application
 rather than `xterm`, since `xterm` is hard to operate.
 
 Now enlarge the *Private storage max size* option of the disposable qube.
-Do this from the *Settings* dialog of the qube.  Make it at least 20 GB.
+Do this from the *Settings* dialog of the qube.  Make it at least 10 GB.
 
 Run the following command on that terminal:
 
