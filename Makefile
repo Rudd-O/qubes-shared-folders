@@ -29,7 +29,7 @@ install-client: install-py
 	install -Dm 755 bin/qvm-mount-folder -t $(DESTDIR)/$(BINDIR)/
 	install -Dm 755 etc/qubes-rpc/ruddo.ConnectToFolder -t $(DESTDIR)/$(SYSCONFDIR)/qubes-rpc/
 
-target/release/qfsd: src/main.rs
+target/release/qfsd: src/main.rs $(wildcard p9/src/*.rs) $(wildcard p9/src/protocol/*.rs) $(wildcard p9/src/server/*.rs)
 	cargo build --release
 
 install-server: target/release/qfsd

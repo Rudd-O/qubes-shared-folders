@@ -9,4 +9,4 @@ name = "qfsd"
 path = "src/main.rs"
 
 [dependencies]
-p9 = "0.2.3"
+p9 = { path = "p9" }

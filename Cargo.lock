@@ -11,8 +11,6 @@ checksum = "9c198f91728a82281a64e1f4f9eeb25d82cb32a5de251c6bd1b5154d63a8e7bd"
 [[package]]
 name = "p9"
 version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4838a2d89bdcbcad051f18347ed6cbe3e5b9b09fb0019e1a6ec4bb2bb1d29481"
 dependencies = [
  "libc",
  "p9_wire_format_derive",
