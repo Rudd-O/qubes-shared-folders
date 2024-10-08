@@ -44,7 +44,6 @@ then
     rm -rf src/qubes-shared-folders
     git clone https://github.com/Rudd-O/qubes-shared-folders src/qubes-shared-folders
     cd src/qubes-shared-folders
-    git checkout origin/qfsd # FIXME
     make srpm
     cd ../..
 
