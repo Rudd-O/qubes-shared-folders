@@ -3,7 +3,7 @@
 %define mybuildnumber %{?build_number}%{?!build_number:1}
 
 Name:           qubes-shared-folders
-Version:        0.3.1
+Version:        0.4.0
 Release:        %{mybuildnumber}%{?dist}
 Summary:        Inter-VM folder sharing via Plan 9 filesystem
 
@@ -16,9 +16,12 @@ BuildRequires:  python3
 BuildRequires:  python3-pytest
 BuildRequires:  python3-mock
 BuildRequires:  python3-mypy
+BuildRequires:  python3-devel
 BuildRequires:  desktop-file-utils
 BuildRequires:  cargo-rpm-macros >= 24
 BuildRequires:  python3-rpm-macros
+BuildRequires:  checkpolicy
+BuildRequires:  selinux-policy-devel
 Requires:       bash
 Requires:       python3
 Requires:       qubes-core-agent-qrexec
@@ -30,6 +33,10 @@ Requires:       qubes-core-dom0-linux >= 4.1
 Requires:       python3
 Requires:       gobject-introspection
 Requires:       gtk3
+
+Requires(post):   /usr/sbin/semodule, /sbin/restorecon, /sbin/fixfiles, myapp
+Requires(postun): /usr/sbin/semodule, /sbin/restorecon, /sbin/fixfiles, myapp
+
 BuildArch:      noarch
 
 %description
@@ -50,22 +57,41 @@ You are meant to install this package on the dom0, if you installed the
 %build
 %cargo_build
 
+make -f /usr/share/selinux/devel/Makefile -C selinux fix-qvm-mount-folder.pp
+
 %install
 rm -rf "$RPM_BUILD_ROOT"
 for target in install-client install-server install-dom0; do
-    make $target DESTDIR="$RPM_BUILD_ROOT" BINDIR=%{_bindir} SYSCONFDIR=%{_sysconfdir} LIBEXECDIR=%{_libexecdir} DATADIR=%{_datadir} || exit $?
+    make $target PYTHON=%{python3} DESTDIR="$RPM_BUILD_ROOT" BINDIR=%{_bindir} SYSCONFDIR=%{_sysconfdir} LIBEXECDIR=%{_libexecdir} DATADIR=%{_datadir} SITEPACKAGES=%{python3_sitelib} || exit $?
 done
 touch "$RPM_BUILD_ROOT"/%{_sysconfdir}/qubes/shared-folders/policy.db
+
+install -d %{buildroot}%{_datadir}/selinux/packages
+install -p -m 644 selinux/fix-qvm-mount-folder.pp "$RPM_BUILD_ROOT"/%{_datadir}/selinux/packages/fix-qvm-mount-folder.pp
 
 %check
 desktop-file-validate desktop/*.desktop
 make test || exit $?
 
+%post
+%selinux_modules_install %{_datadir}/selinux/packages/fix-qvm-mount-folder.pp || :
+
+%postun
+if [ "$1" -eq 0 ]; then
+    %selinux_modules_uninstall %{_datadir}/selinux/packages/fix-qvm-mount-folder.pp
+fi || :
+
+# percent posttrans selinux
+# percent selinux_relabel_post
+# We do not relabel any objects on any file system.
+# exit 0
+
 %files
 %attr(0755, root, root) %{_bindir}/qvm-mount-folder
 %attr(0755, root, root) %{_bindir}/qfsd
 %attr(0755, root, root) %{_sysconfdir}/qubes-rpc/ruddo.ConnectToFolder
-%attr(0644, root, root) %{python3_sitearch}/sharedfolders/*
+%attr(0644, root, root) %{python3_sitelib}/sharedfolders/*
+%{_datadir}/selinux/packages/fix-qvm-mount-folder.pp
 %doc README.md TODO.md doc
 
 %files dom0
@@ -77,7 +103,7 @@ make test || exit $?
 %attr(0755, root, root) %{_sysconfdir}/qubes-rpc/ruddo.AuthorizeFolderAccess
 %attr(0755, root, root) %{_sysconfdir}/qubes-rpc/ruddo.QueryFolderAuthorization
 %attr(0755, root, root) %{_libexecdir}/qvm-authorize-folder-access
-%attr(0644, root, root) %{python3_sitearch}/sharedfolders/*
+%attr(0644, root, root) %{python3_sitelib}/sharedfolders/*
 %attr(0755, root, root) %{_bindir}/qvm-folder-share-manager
 %doc README.md TODO.md doc src/test-qfsd-mount.py
 

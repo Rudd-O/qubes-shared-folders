@@ -4,6 +4,7 @@ SYSCONFDIR=/etc
 DATADIR=/usr/share
 DESTDIR=
 PROGNAME=qubes-shared-folders
+PYTHON=/usr/bin/python3
 SITEPACKAGES=$(shell python3 -Ic "import sysconfig; print(sysconfig.get_path('platlib', vars={'platbase': '/usr', 'base': '/usr'}))")
 
 .PHONY: clean install-client install-dom0 install-py black test mypy unit
@@ -11,6 +12,7 @@ SITEPACKAGES=$(shell python3 -Ic "import sysconfig; print(sysconfig.get_path('pl
 clean:
 	find -name '*~' -print0 | xargs -0 rm -f
 	find -name '__pycache__' -print0 | xargs -0 rm -rf
+	find -name .mypy_cache -print0 | xargs -0 rm -rf
 	rm -fr *.tar.gz *.rpm target
 
 dist: clean
@@ -24,6 +26,7 @@ srpm: dist
 
 install-py:
 	install -Dm 644 py/sharedfolders/*.py -t $(DESTDIR)/$(SITEPACKAGES)/sharedfolders/
+	$(PYTHON) -m compileall $(DESTDIR)/$(SITEPACKAGES)/sharedfolders/
 
 install-client: install-py
 	install -Dm 755 bin/qvm-mount-folder -t $(DESTDIR)/$(BINDIR)/
@@ -53,7 +56,7 @@ black:
 	grep "^#!/usr/bin/python3" -r . | cut -d : -f 1 | sort | uniq | xargs -n1 black
 
 unit:
-	PYTHONPATH="$$PWD"/py python3 -m pytest -v
+	PYTHONPATH="$$PWD"/py $(PYTHON) -m pytest -v
 
 mypy:
 	PYTHONPATH="$$PWD"/py MYPYPATH="$$PWD"/py mypy --python-version 3.10 --strict -p sharedfolders

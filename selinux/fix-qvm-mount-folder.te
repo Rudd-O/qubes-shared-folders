@@ -1,0 +1,19 @@
+module fix-qvm-mount-folder 1.0;
+
+# https://github.com/Rudd-O/qubes-shared-folders/issues/15
+
+require {
+        type unconfined_t;
+        type kernel_t;
+        class fifo_file read;
+}
+
+require {
+        type kernel_t;
+        type unconfined_t;
+        class fifo_file write;
+}
+
+#============= kernel_t ==============
+allow kernel_t unconfined_t:fifo_file read;
+allow kernel_t unconfined_t:fifo_file write;
