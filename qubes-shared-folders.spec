@@ -34,8 +34,8 @@ Requires:       python3
 Requires:       gobject-introspection
 Requires:       gtk3
 
-Requires(post):   /usr/sbin/semodule, /sbin/restorecon, /sbin/fixfiles, myapp
-Requires(postun): /usr/sbin/semodule, /sbin/restorecon, /sbin/fixfiles, myapp
+Requires(post):   /usr/sbin/semodule, /sbin/restorecon, /sbin/fixfiles
+Requires(postun): /usr/sbin/semodule, /sbin/restorecon, /sbin/fixfiles
 
 BuildArch:      noarch
 
