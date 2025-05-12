@@ -168,6 +168,7 @@ Download and install to your template:
 
 Download and install to your dom0:
 
+* `policycoreutils` using `sudo qubes-dom0-update policycoreutils`
 * the latest `qubes-shared-folders-dom0` `noarch` package
 
 Shut off your template qube and restart any qubes you plan to share folders
