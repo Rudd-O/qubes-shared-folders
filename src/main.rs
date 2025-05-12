@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::fs::File;
 use std::io::ErrorKind;
-use std::os::fd::FromRawFd;
+use std::os::unix::io::FromRawFd;
 use std::path::Path;
 
 const EX_OK: i32 = 0;
