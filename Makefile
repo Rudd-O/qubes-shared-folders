@@ -5,7 +5,7 @@ DATADIR=/usr/share
 DESTDIR=
 PROGNAME=qubes-shared-folders
 PYTHON=/usr/bin/python3
-SITEPACKAGES=$(shell python3 -Ic "import sysconfig; print(sysconfig.get_path('platlib', vars={'platbase': '/usr', 'base': '/usr'}))")
+SITEPACKAGES=$(shell python3 -Ic "import sysconfig; print(sysconfig.get_path('platstdlib', vars={'platbase': '/usr', 'base': '/usr'}))")
 
 .PHONY: clean install-client install-dom0 install-py black test mypy unit
 
