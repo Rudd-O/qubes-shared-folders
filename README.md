@@ -150,7 +150,8 @@ security model, you are better off *not using this program*.
 ## Installation
 
 The recommended way to install the various components is via pre-built RPM
-packages.  The packages are available for download here:
+packages. Note: F40 and earlier are considered end-of-life.
+The packages are available for download here:
 
 * Fedora templates:
   * 38: https://repo.rudd-o.com/unstable/fc38/packages/
