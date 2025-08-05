@@ -156,6 +156,7 @@ packages.  The packages are available for download here:
   * 38: https://repo.rudd-o.com/unstable/fc38/packages/
   * 39: https://repo.rudd-o.com/unstable/fc39/packages/
   * 40: https://repo.rudd-o.com/unstable/fc40/packages/
+  * 41: https://repo.rudd-o.com/unstable/fc41/packages/
 * Qubes OS dom0:
   * 4.2: https://repo.rudd-o.com/unstable/q4.2/packages/
   * 4.1: packages aren't built for Qubes OS 4.1 anymore.
