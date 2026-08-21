@@ -116,7 +116,7 @@ built).  These commands will require a few dependencies on the system you
 build on, including `cargo` from the Rust collection.
 
 Then copy *the source tree* to a folder in your template (preserving
-timestamps), and then run `make install-client install-server` within that 
+timestamps), and then run `make install-client install-server` within that
 folder of your template.  Note that this will modify your template's root
 file system permanently.
 

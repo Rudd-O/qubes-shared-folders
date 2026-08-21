@@ -158,8 +158,13 @@ The packages are available for download here:
   * 39: https://repo.rudd-o.com/unstable/fc39/packages/
   * 40: https://repo.rudd-o.com/unstable/fc40/packages/
   * 41: https://repo.rudd-o.com/unstable/fc41/packages/
+  * 42: https://repo.rudd-o.com/unstable/fc42/packages/
+  * 43: https://repo.rudd-o.com/unstable/fc43/packages/
+  * 44: https://repo.rudd-o.com/unstable/fc44/packages/
+  * 45: https://repo.rudd-o.com/unstable/fc45/packages/
 * Qubes OS dom0:
-  * 4.2: https://repo.rudd-o.com/unstable/q4.2/packages/
+  * 4.3: https://repo.rudd-o.com/unstable/q4.3/packages/
+  * 4.2: packages aren't built for Qubes OS 4.2 anymore.
   * 4.1: packages aren't built for Qubes OS 4.1 anymore.
 
 Download and install to your template:
