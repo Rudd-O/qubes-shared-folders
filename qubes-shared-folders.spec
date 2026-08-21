@@ -21,6 +21,7 @@ BuildRequires:  cargo-rpm-macros >= 24
 BuildRequires:  python3-rpm-macros
 BuildRequires:  checkpolicy
 BuildRequires:  selinux-policy-devel
+BuildRequires:  rust-p9+default-devel >= 0.3.2
 Requires:       bash
 Requires:       python3
 Requires:       qubes-core-agent-qrexec
