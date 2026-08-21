@@ -50,9 +50,10 @@ You are meant to install this package on the dom0, if you installed the
 
 %prep
 %autosetup -n %{name}-%{version}
-%cargo_prep -v vendor
+%cargo_prep
 
 %generate_buildrequires
+%cargo_generate_buildrequires
 
 %build
 %cargo_build
