@@ -14,7 +14,9 @@ Source0:        https://github.com/Rudd-O/%{name}/archive/{%version}.tar.gz#/%{n
 BuildRequires:  make
 BuildRequires:  python3
 BuildRequires:  python3-pytest
+%if 0%{?fedora} && 0%{?fedora} < 45
 BuildRequires:  python3-mock
+%endif
 BuildRequires:  python3-mypy
 BuildRequires:  python3-devel
 BuildRequires:  desktop-file-utils
