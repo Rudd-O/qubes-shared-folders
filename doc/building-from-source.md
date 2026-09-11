@@ -27,61 +27,66 @@ sudo dnf install -y git /usr/bin/toolbox rpm-build gawk tar wget mock
 
 if ! test -d srpms
 then
-    mkdir -p src
-
-    for dep in p9-fedora-packaging
-    do
-        rm -rf src/"$dep"
-        git clone https://github.com/Rudd-O/"$dep" src/"$dep"
-        cd src/"$dep"
-        url=$(rpmspec -P *.spec | grep ^Source: | awk ' { print $2 } ')
-        fn=$(basename "$url")
-        wget -U "cargo/1.32.0 (8610973aa 2019-01-02)" -O "$fn" "$url"
-        rpmbuild --define "_srcrpmdir ./" --define "_sourcedir ./" -bs *.spec
-        cd ../..
-    done
-
-    rm -rf src/qubes-shared-folders
-    git clone https://github.com/Rudd-O/qubes-shared-folders src/qubes-shared-folders
-    cd src/qubes-shared-folders
-    make srpm
-    cd ../..
-
     mkdir -p srpms
-    mv -f src/*/*.src.rpm srpms
 fi
+
+if ! test -d src
+then
+    mkdir -p src
+fi
+
+for dep in p9_wire_format_derive-fedora-packaging p9-fedora-packaging
+do
+    rm -rf src/"$dep"
+    git clone https://github.com/Rudd-O/"$dep" src/"$dep"
+    cd src/"$dep"
+    url=$(rpmspec -P *.spec | grep ^Source: | awk ' { print $2 } ')
+    fn=$(basename "$url")
+    wget -U "cargo/1.32.0 (8610973aa 2019-01-02)" -O "$fn" "$url"
+    rpmbuild --define "_srcrpmdir ./" --define "_sourcedir ./" -bs *.spec
+    cd ../..
+done
+
+rm -rf src/qubes-shared-folders
+git clone https://github.com/Rudd-O/qubes-shared-folders src/qubes-shared-folders
+cd src/qubes-shared-folders
+make srpm
+cd ../..
+
+mkdir -p srpms
+mv -f src/*/*.src.rpm srpms
 
 if ! test -d rpms/fedora
 then
     mkdir -p rpms/fedora
-    {
-        set -e
-        sudo mock -nN --resultdir "$PWD/rpms/fedora" --postinstall --rebuild srpms/rust-p9_*.src.rpm
-        sudo mock -nN --resultdir "$PWD/rpms/fedora" --postinstall --rebuild srpms/rust-p9-*.src.rpm
-        sudo mock -nN --resultdir "$PWD/rpms/fedora" --rebuild srpms/qubes-shared-folders-*.src.rpm
-    } || {
-        rm -rf rpms/fedora
-        exit 1
-    }
 fi
+{
+    set -e
+    sudo mock -nN --resultdir "$PWD/rpms/fedora" --postinstall --rebuild srpms/rust-p9_*.src.rpm
+    sudo mock -nN --resultdir "$PWD/rpms/fedora" --postinstall --rebuild srpms/rust-p9-*.src.rpm
+    sudo mock -nN --resultdir "$PWD/rpms/fedora" --rebuild srpms/qubes-shared-folders-*.src.rpm
+} || {
+    rm -rf rpms/fedora
+    exit 1
+}
 
 if ! test -d rpms/dom0
 then
     mkdir -p rpms/dom0
-    {
-        set -e
-        toolbox -r 41 run sudo dnf install -y mock || {
-            toolbox -r 41 create -y
-            toolbox -r 41 run sudo dnf install -y mock
-        }
-        toolbox -r 41 run mock --no-bootstrap-chroot -nN --resultdir "$PWD/rpms/dom0" --postinstall --rebuild srpms/rust-p9_*.src.rpm
-        toolbox -r 41 run mock --no-bootstrap-chroot -nN --resultdir "$PWD/rpms/dom0" --postinstall --rebuild srpms/rust-p9-*.src.rpm
-        toolbox -r 41 run mock --no-bootstrap-chroot -nN --resultdir "$PWD/rpms/dom0" --rebuild srpms/qubes-shared-folders-*.src.rpm
-    } || {
-        rm -rf rpms/dom0
-        exit 1
-    }
 fi
+{
+    set -e
+    toolbox -r 41 run sudo dnf install -y mock || {
+        toolbox -r 41 create -y
+        toolbox -r 41 run sudo dnf install -y mock
+    }
+    toolbox -r 41 run mock --no-bootstrap-chroot -nN --resultdir "$PWD/rpms/dom0" --postinstall --rebuild srpms/rust-p9_*.src.rpm
+    toolbox -r 41 run mock --no-bootstrap-chroot -nN --resultdir "$PWD/rpms/dom0" --postinstall --rebuild srpms/rust-p9-*.src.rpm
+    toolbox -r 41 run mock --no-bootstrap-chroot -nN --resultdir "$PWD/rpms/dom0" --rebuild srpms/qubes-shared-folders-*.src.rpm
+} || {
+    rm -rf rpms/dom0
+    exit 1
+}
 
 exit
 ```
