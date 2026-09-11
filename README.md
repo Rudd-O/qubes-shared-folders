@@ -1,3 +1,13 @@
+# ATTENTION: Security issue
+
+**There is a security issue in the file system server shipped within
+this package.  The file system server incorrectly handles path requests
+from the client, leading to clients being able to read files past the
+rhare root (up and above).  Please remove existing Qubes shared folders
+packages, or alternatively disable all file shares in your Qubes OS
+system, until a fix is published (this text will go away when that is
+the case).**
+
 # Shared folders for Qubes OS
 
 **Connect qube storage to another qube.**  Access and manage folders
