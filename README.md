@@ -1,13 +1,3 @@
-# ATTENTION: Security issue
-
-**There is a security issue in the file system server shipped within
-this package.  The file system server incorrectly handles path requests
-from the client, leading to clients being able to read files past the
-rhare root (up and above).  Please remove existing Qubes shared folders
-packages, or alternatively disable all file shares in your Qubes OS
-system, until a fix is published (this text will go away when that is
-the case).**
-
 # Shared folders for Qubes OS
 
 **Connect qube storage to another qube.**  Access and manage folders
@@ -15,6 +5,20 @@ saved in one qube (or a file server connected to it) from another
 qube, transparently, as they were in the other qube.
 
 We have some [to-do items](./TODO.md) which we'd love your help with!
+
+## Security announcement
+
+**There is a security issue** in all packages of this project below
+version 0.5.1.  The file system server incorrectly handles path requests
+from the client, leading to clients being able to read files past the
+rhare root (up and above).  This bug was present in the `rust-p9` library
+the file server uses.  That has been fixed upstream now, and this
+package incorporates the fix.
+
+**Action required**: please upgrade to the latest packages in your
+Qubes OS templates.  If you built from source, follow the instructions
+again and update your packages.  See the [Installation](#installation)
+section below for instructions.
 
 ## Principle
 
@@ -160,7 +164,7 @@ security model, you are better off *not using this program*.
 ## Installation
 
 The recommended way to install the various components is via pre-built RPM
-packages. Note: F40 and earlier are considered end-of-life.
+packages. Note: F43 and earlier are considered end-of-life.
 The packages are available for download here:
 
 * Fedora templates:
@@ -180,11 +184,13 @@ The packages are available for download here:
 Download and install to your template:
 
 * the latest `qubes-shared-folders` `x86_64` package
+* all the dependencies of the package in the repository
 
 Download and install to your dom0:
 
 * `policycoreutils` using `sudo qubes-dom0-update policycoreutils`
 * the latest `qubes-shared-folders-dom0` `noarch` package
+* all the dependencies of the package in the repository
 
 Shut off your template qube and restart any qubes you plan to share folders
 to or from.

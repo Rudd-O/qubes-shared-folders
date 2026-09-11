@@ -1,6 +1,6 @@
 # How to build and install Qubes shared folders from source
 
-You'll need a working Qubes OS 4.2 system and familiarity with Qubes OS,
+You'll need a working Qubes OS 4.3 system and familiarity with Qubes OS,
 the terminal, and disposable qubes.  The instructions are complex, so to
 facilitate the process, these are executable instructions you can run from
 the safety of a disposable qube, or (if you know how) replicate by hand.
@@ -29,14 +29,14 @@ if ! test -d srpms
 then
     mkdir -p src
 
-    for dep in p9_wire_format_derive-fedora-packaging p9-fedora-packaging
+    for dep in p9-fedora-packaging
     do
         rm -rf src/"$dep"
         git clone https://github.com/Rudd-O/"$dep" src/"$dep"
         cd src/"$dep"
         url=$(rpmspec -P *.spec | grep ^Source: | awk ' { print $2 } ')
         fn=$(basename "$url")
-        wget -O "$fn" "$url"
+        wget -U "cargo/1.32.0 (8610973aa 2019-01-02)" -O "$fn" "$url"
         rpmbuild --define "_srcrpmdir ./" --define "_sourcedir ./" -bs *.spec
         cd ../..
     done
@@ -70,13 +70,13 @@ then
     mkdir -p rpms/dom0
     {
         set -e
-        toolbox -r 37 run sudo dnf install -y mock || {
-            toolbox -r 37 create -y
-            toolbox -r 37 run sudo dnf install -y mock
+        toolbox -r 41 run sudo dnf install -y mock || {
+            toolbox -r 41 create -y
+            toolbox -r 41 run sudo dnf install -y mock
         }
-        toolbox -r 37 run mock --no-bootstrap-chroot -nN --resultdir "$PWD/rpms/dom0" --postinstall --rebuild srpms/rust-p9_*.src.rpm
-        toolbox -r 37 run mock --no-bootstrap-chroot -nN --resultdir "$PWD/rpms/dom0" --postinstall --rebuild srpms/rust-p9-*.src.rpm
-        toolbox -r 37 run mock --no-bootstrap-chroot -nN --resultdir "$PWD/rpms/dom0" --rebuild srpms/qubes-shared-folders-*.src.rpm
+        toolbox -r 41 run mock --no-bootstrap-chroot -nN --resultdir "$PWD/rpms/dom0" --postinstall --rebuild srpms/rust-p9_*.src.rpm
+        toolbox -r 41 run mock --no-bootstrap-chroot -nN --resultdir "$PWD/rpms/dom0" --postinstall --rebuild srpms/rust-p9-*.src.rpm
+        toolbox -r 41 run mock --no-bootstrap-chroot -nN --resultdir "$PWD/rpms/dom0" --rebuild srpms/qubes-shared-folders-*.src.rpm
     } || {
         rm -rf rpms/dom0
         exit 1
@@ -125,13 +125,6 @@ Follow the Fedora instructions above to do so.
 
 Pull requests are gladly welcome to enable packaging the client for Debian.
 
-### Qubes OS 4.1?
-
-It is not currently known if the instructions above will work to build
-(using toolbox images for Fedora 32 instead of Fedora 37) since the Rust
-packaging ecosystem for Fedora was very different back in the Fedora 32
-times.  You may as well give it a shot.
-
-### Qubes 4.0 users
+### Qubes OS < 4.3?
 
 This is no longer supported.  Sorry.
